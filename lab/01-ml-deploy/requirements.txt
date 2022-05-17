@@ -1,0 +1,6 @@
+boto3
+pandas
+PyYAML
+sagemaker
+scikit-learn
+tensorflow==2.4.1

@@ -1,0 +1,329 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ML Environment
+Parameters:
+  AccountIdTooling:
+    Type: String
+    Description: AWS Account ID where CI/CD is deployed
+
+  CodePipelineDeploymentArn:
+    Type: String
+    Description: ARN CodePipeline to trigger
+    Default: ""
+
+  KMSAlias:
+    Type: String
+    Description: KMS Alias to use for the encryption key
+    Default: ml-kms
+
+  ModelPackageGroupDescription:
+    Type: String
+    Description: SageMaker model package group description
+    Default: Model package group
+
+  ModelPackageGroupName:
+    Type: String
+    Description: SageMaker model package group name
+
+  S3BucketName:
+    Type: String
+    Description: Bucket name used for SM Studio
+
+Conditions:
+  AccountIdToolingEmpty: !Equals
+    - !Ref AccountIdTooling
+    - ''
+  DeployEventBridgeAutomation: !Not
+    - !Equals
+      - !Ref CodePipelineDeploymentArn
+      - ""
+  CodePipelineDeploymentArnEmpty: !Equals
+    - !Ref CodePipelineDeploymentArn
+    - ''
+
+Resources:
+  ### KMS Section ###
+
+  KmsS3Key:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      Enabled: true
+      KeyPolicy:
+        Id: !Ref AWS::StackName
+        Statement:
+          - Sid: Enable administration of the key
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+
+  KmsS3KeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${KMSAlias}
+      TargetKeyId: !Ref KmsS3Key
+
+  ### Bucket Section ###
+
+  S3BucketMLLogging:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${S3BucketName}-logs"
+      AccessControl: "LogDeliveryWrite"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: false
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  S3BucketML:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${S3BucketName}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: false
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:${KmsS3KeyAlias}"
+              SSEAlgorithm: "aws:kms"
+      LoggingConfiguration:
+        DestinationBucketName: !Ref S3BucketMLLogging
+        LogFilePrefix: s3/
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  ### Bucket Policy Section ###
+
+  S3BucketPolicyML:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3BucketML
+      PolicyDocument:
+        Statement:
+          - Action: "s3:*"
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:"
+                  - !Ref "AWS::Partition"
+                  - ":iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+            Resource:
+              - !GetAtt
+                - S3BucketML
+                - Arn
+              - !Join
+                - ""
+                - - !GetAtt
+                    - S3BucketML
+                    - Arn
+                  - /*
+        Version: 2012-10-17
+
+  ### Policy for CI/CD Automation ###
+
+  AutomationPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "cloudformation:*"
+              - "cloudwatch:*"
+              - "codebuild:*"
+              - "codecommit:*"
+              - "codedeploy:*"
+              - "ec2:CreateNetworkInterface"
+              - "ec2:CreateNetworkInterfacePermission"
+              - "ec2:DeleteNetworkInterface"
+              - "ec2:DeleteNetworkInterfacePermission"
+              - "ec2:DescribeDhcpOptions"
+              - "ec2:DescribeNetworkInterfaces"
+              - "ec2:DescribeRouteTables"
+              - "ec2:DescribeSecurityGroups"
+              - "ec2:DescribeSubnets"
+              - "ec2:DescribeVpcEndpoints"
+              - "ec2:DescribeVpcs"
+              - "iam:PassRole"
+              - "kms:CreateGrant"
+              - "kms:Decrypt"
+              - "kms:DescribeKey"
+              - "kms:Encrypt"
+              - "kms:ReEncrypt"
+              - "kms:GenerateDataKey"
+              - "lambda:*"
+              - "logs:*"
+              - "s3:*"
+              - "sagemaker:*"
+              - "ssm:*"
+              - "states:*"
+              - "sts:AssumeRole"
+            Resource:
+              - "*"
+
+  ### Role for CI/CD Automation ###
+
+  AutomationRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: ci-cd-automation-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+                - codebuild.amazonaws.com
+                - codepipeline.amazonaws.com
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS:
+                !If
+                  - AccountIdToolingEmpty
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+                  - !Sub 'arn:aws:iam::${AccountIdTooling}:root'
+      Path: /
+      ManagedPolicyArns:
+        - !Ref AutomationPolicy
+
+  ### SageMaker Model Registry
+
+  SageMakerModelPackageGroup:
+    Type: AWS::SageMaker::ModelPackageGroup
+    Properties:
+      ModelPackageGroupName: !Ref ModelPackageGroupName
+      ModelPackageGroupPolicy:
+        Statement:
+          - Action:
+              - "sagemaker:*"
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:"
+                  - !Ref "AWS::Partition"
+                  - ":iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+            Resource:
+              - !Join
+                - ""
+                - - "arn:aws:sagemaker:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":model-package-group/"
+                  - !Ref ModelPackageGroupName
+              - !Join
+                - ""
+                - - "arn:aws:sagemaker:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":model-package/"
+                  - !Ref ModelPackageGroupName
+                  - /*
+            Sid: "0"
+        Version: 2012-10-17
+
+  ### EventBridge Rule
+
+  EventBridgeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+
+  EventBridgeDefaultIAMPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: "codepipeline:StartPipelineExecution"
+            Effect: Allow
+            Resource:
+              !If
+                - CodePipelineDeploymentArnEmpty
+                - '{{resolve:ssm:/codepipeline/deployment}}'
+                - !Ref CodePipelineDeploymentArn
+      PolicyName: EventBridgeDefaultIAMPolicy
+      Roles:
+        - !Ref EventBridgeRole
+
+  EventBridgeRuleNoProd:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Check Model Package changes
+      EventPattern:
+        detail:
+          ModelPackageGroupName:
+            - !Ref ModelPackageGroupName
+          ModelApprovalStatus:
+            - Approved
+            - Rejected
+        detail-type:
+          - SageMaker Model Package State Change
+        source:
+          - aws.sagemaker
+      Name: non-prod-pipeline-rule
+      State: ENABLED
+      Targets:
+        - Arn:
+            !If
+              - CodePipelineDeploymentArnEmpty
+              - '{{resolve:ssm:/codepipeline/deployment}}'
+              - !Ref CodePipelineDeploymentArn
+          Id: Target0
+          RoleArn: !GetAtt
+            - EventBridgeRole
+            - Arn
+
+  ### SSM Parameters
+
+  KMSAliasSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /kms/alias/ml
+      Tier: Standard
+      Type: String
+      Value: !Ref KMSAlias
+
+  KMSIdSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /kms/id/ml
+      Tier: Standard
+      Type: String
+      Value: !Ref KmsS3Key
+
+  S3BucketMLSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /s3/bucket/ml
+      Tier: Standard
+      Type: String
+      Value: !Ref S3BucketML

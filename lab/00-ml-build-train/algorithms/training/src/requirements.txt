@@ -1,0 +1,6 @@
+fsspec
+h5py
+nltk
+params-flow==0.8.2
+sentencepiece==0.1.91
+transformers==3.5.0

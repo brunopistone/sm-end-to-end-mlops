@@ -1,0 +1,25 @@
+training:
+    pipeline_name: MLOpsTrainPipeline
+    region: eu-west-1
+    role: arn:aws:iam::691148928602:role/mlops-sagemaker-execution-role
+    kms_account_id: 691148928602
+    kms_alias: ml-kms
+    bucket_name: isengard-bpistone-ml-end-to-end-dev
+    inference_instance_type: ml.m5.xlarge
+    model_package_group_name: ml-end-to-end-group
+    processing_entrypoint: ./../algorithms/processing/src/processing.py
+    processing_framework_version: 0.23-1
+    processing_instance_count: 1
+    processing_instance_type: ml.t3.large
+    processing_input_files_path: data/input
+    processing_output_files_path: data/output
+    training_artifact_path: artifact/training
+    training_artifact_name: sourcedir.tar.gz
+    training_output_files_path: models
+    training_framework_version: 2.4
+    training_python_version: py37
+    training_instance_count: 1
+    training_instance_type: ml.p2.xlarge
+    training_hyperparameters:
+        epochs: 3
+        input_file: processed_data.csv

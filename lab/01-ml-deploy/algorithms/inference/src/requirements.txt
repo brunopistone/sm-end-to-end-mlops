@@ -1,0 +1,7 @@
+boto3
+pandas
+params-flow==0.8.2
+sentencepiece==0.1.91
+scikit-learn
+tensorflow==2.4.1
+transformers==3.5.0

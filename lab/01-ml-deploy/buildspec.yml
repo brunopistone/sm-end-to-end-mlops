@@ -1,0 +1,32 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - cd mlpipelines
+      - pip3 install -r requirements.txt
+      - cd ..
+  pre_build:
+    commands:
+      - cd algorithms
+      - ./buildspec.sh inference $S3_BUCKET_NAME
+      - cd ..
+      - role=$(aws sts assume-role --role-arn $CROSS_ACCOUNT_ROLE --role-session-name $ENV)
+      - KEY=$(echo $role | jq ".Credentials.AccessKeyId" --raw-output)
+      - SECRET=$(echo $role | jq ".Credentials.SecretAccessKey" --raw-output)
+      - TOKEN=$(echo $role | jq ".Credentials.SessionToken" --raw-output)
+      - export AWS_ACCESS_KEY_ID=$KEY
+      - export AWS_SECRET_ACCESS_KEY=$SECRET
+      - export AWS_SESSION_TOKEN=$TOKEN
+      - echo $AWS_ACCESS_KEY_ID
+      - echo $AWS_SECRET_ACCESS_KEY
+      - echo $AWS_SESSION_TOKEN
+      - echo Enter pre_build phase on `date`
+  build:
+    commands:
+      - cd mlpipelines
+      - python3 run_pipeline.py -e $ENV -p deployment -i pipeline_name=$PIPELINE_NAME model_package_group=$MPNAME
+artifacts:
+  files: "**/*"
