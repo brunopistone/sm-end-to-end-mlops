@@ -1,10 +1,10 @@
 training:
     pipeline_name: MLOpsTrainPipeline
     region: eu-west-1
-    role: arn:aws:iam::691148928602:role/mlops-sagemaker-execution-role
-    kms_account_id: 691148928602
+    role:
+    kms_account_id:
     kms_alias: ml-kms
-    bucket_name: isengard-bpistone-ml-end-to-end-dev
+    bucket_name:
     inference_instance_type: ml.m5.xlarge
     model_package_group_name: ml-end-to-end-group
     processing_entrypoint: ./../algorithms/processing/src/processing.py
@@ -21,5 +21,5 @@ training:
     training_instance_count: 1
     training_instance_type: ml.p2.xlarge
     training_hyperparameters:
-        epochs: 3
+        epochs: 5
         input_file: processed_data.csv
