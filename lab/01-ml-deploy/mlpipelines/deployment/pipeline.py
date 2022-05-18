@@ -135,7 +135,7 @@ def get_deployed_model():
 
         raise e
 
-def deploy_model(session, model, model_package_group_name, env, inference_instance_count, inference_instance_type):
+def deploy_model(model, model_package_group_name, env, inference_instance_count, inference_instance_type):
     try:
         LOGGER.info("Deploying endpoint {}".format(model_package_group_name + "-" + env))
 
@@ -151,22 +151,32 @@ def deploy_model(session, model, model_package_group_name, env, inference_instan
 
         model_name = get_deployed_model()
 
-        update_model(session, model_name, model_package_group_name, env, inference_instance_count, inference_instance_type)
+        update_model(model_name, model_package_group_name, env, inference_instance_count, inference_instance_type)
 
-def update_model(session, model_name, model_package_group_name, env, inference_instance_count, inference_instance_type):
+def update_model(model_name, model_package_group_name, env, inference_instance_count, inference_instance_type):
     try:
-        LOGGER.info("Updating endpoint configuration {}".format(model_package_group_name + "-" + env))
+        config_name = "{}-{}-{}".format(model_package_group_name, env, datetime.today().strftime('%Y-%m-%d-%H-%M-%S'))
 
-        endpoint_config_name = session.create_endpoint_config(
-            name="{}-{}-{}".format(model_package_group_name, env, datetime.today().strftime('%Y-%m-%d-%H-%M-%S')),
-            model_name=model_name,
-            initial_instance_count=inference_instance_count,
-            instance_type=inference_instance_type
+        LOGGER.info("Creating endpoint configuration {}".format(config_name))
+
+        response_endpoint_config = sagemaker_client.create_endpoint_config(
+            EndpointConfigName=config_name,
+            ProductionVariants=[
+                {
+                    "VariantName": "AllTraffic",
+                    "ModelName": model_name,
+                    "InitialInstanceCount": inference_instance_count,
+                    "InstanceType": inference_instance_type,
+                    "InitialVariantWeight": 1.0
+                }
+            ]
         )
+
+        LOGGER.info(response_endpoint_config)
 
         response = sagemaker_client.update_endpoint(
             EndpointName=model_package_group_name + "-" + env,
-            EndpointConfigName=endpoint_config_name
+            EndpointConfigName=config_name
         )
 
         LOGGER.info("Update endpoint {}-{}".format(model_package_group_name, env))
@@ -250,7 +260,6 @@ def get_pipeline(
     )
 
     deploy_model(
-        sagemaker_session,
         model,
         model_package_group,
         env,
