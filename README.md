@@ -61,38 +61,38 @@ for monitoring updates in the SageMaker Model Registry and start the CI/CD pipel
 
 ### Build and Train ML models
 
-The code structure defined for the [Build and Train ML models](./lab/00-model-build-train) is the following:
+The code structure defined for the [Build and Train ML models](labs/00-model-build-train) is the following:
 
-* [algorithms](./lab/00-ml-build-train/algorithms): The code used by the ML pipelines for processing and training ML models is stored in this folder
-  * [algorithms/processing](./lab/00-ml-build-train/algorithms/processing): This folder contains the python code for performing processing of data
+* [algorithms](labs/00-ml-build-train/algorithms): The code used by the ML pipelines for processing and training ML models is stored in this folder
+  * [algorithms/processing](labs/00-ml-build-train/algorithms/processing): This folder contains the python code for performing processing of data
   using Amazon SageMaker Processing Jobs
-  * [algorithms/training](./lab/00-ml-build-train/algorithms/training): This folder contains the python code for training a custom ML model 
+  * [algorithms/training](labs/00-ml-build-train/algorithms/training): This folder contains the python code for training a custom ML model 
   using Amazon SageMaker Training Jobs
-* [mlpipelines](./lab/00-ml-build-train/mlpipelines): This folder contains some utilities scripts created in the official AWS example 
+* [mlpipelines](labs/00-ml-build-train/mlpipelines): This folder contains some utilities scripts created in the official AWS example 
 [Amazon SageMaker secure MLOps](https://github.com/aws-samples/amazon-sagemaker-secure-mlops) and it contains the definition for the 
 Amazon SageMaker Pipeline used for training
-  * [mlpipelines](./lab/00-ml-build-train/mlpipelines/training): This folder contains the python code for the ML pipelines used for training
-* [notebooks](./lab/00-model-build-train/notebooks): This folder contains the lab notebooks to use for this workshop:
-  * [notebooks/00-Data-Visualization](./lab/00-ml-build-train/notebooks/00-Data-Visualization.ipynb): Explore the input data and test the processing scripts 
+  * [mlpipelines](labs/00-ml-build-train/mlpipelines/training): This folder contains the python code for the ML pipelines used for training
+* [notebooks](labs/00-model-build-train/notebooks): This folder contains the lab notebooks to use for this workshop:
+  * [notebooks/00-Data-Visualization](labs/00-ml-build-train/notebooks/00-Data-Visualization.ipynb): Explore the input data and test the processing scripts 
   in the notebook
-  * [notebooks/01-Training-Build-Model](./lab/00-ml-build-train/notebooks/01-Train-Build-Model.ipynb): SageMaker 
+  * [notebooks/01-Training-Build-Model](labs/00-ml-build-train/notebooks/01-Train-Build-Model.ipynb): SageMaker 
   End to End approach for processing data using SageMaker Processing, Training the ML model using SageMaker Training, Register 
   the trained model version by using Amazon SageMaker Model Registry.
-  * [notebooks/02-SageMaker-Pipeline-Training](./lab/00-ml-build-train/notebook/02-SageMaker-Pipeline-Training.ipynb): Define 
+  * [notebooks/02-SageMaker-Pipeline-Training](labs/00-ml-build-train/notebook/02-SageMaker-Pipeline-Training.ipynb): Define 
   the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
 
 ### Deploy ML models
 
-The code structure defined for the [Deploy ML models](./lab/01-ml-deploy) is the following:
+The code structure defined for the [Deploy ML models](labs/01-ml-deploy) is the following:
 
-* [algorithms](./lab/01-ml-deploy/algorithms): The code used by Amazon SageMaker Endpoint for performing inference is stored in this folder
-  * [algorithms/inference](./lab/01-ml-deploy/algorithms/inference): This folder contains the python code for performing inference 
+* [algorithms](labs/01-ml-deploy/algorithms): The code used by Amazon SageMaker Endpoint for performing inference is stored in this folder
+  * [algorithms/inference](labs/01-ml-deploy/algorithms/inference): This folder contains the python code for performing inference 
   using Amazon SageMaker Endpoints
-* [mlpipelines](./lab/01-ml-deploy/mlpipelines): This folder contains some utilities scripts created in the official AWS example
+* [mlpipelines](labs/01-ml-deploy/mlpipelines): This folder contains some utilities scripts created in the official AWS example
 [Amazon SageMaker secure MLOps](https://github.com/aws-samples/amazon-sagemaker-secure-mlops) and it contains the scripts to run 
 through CI/CD for creating or updating Amazon SageMaker Endpoints
-* [notebooks](./lab/01-ml-deploy/notebooks): This folder contains the lab notebooks to use for this workshop:
-  * [notebooks/00-SageMaker-Endpoint](./lab/01-ml-deploy/notebooks/00-Deploy-SageMaker-Endpoint.ipynb): This notebook shows you how to 
+* [notebooks](labs/01-ml-deploy/notebooks): This folder contains the lab notebooks to use for this workshop:
+  * [notebooks/00-SageMaker-Endpoint](labs/01-ml-deploy/notebooks/00-Deploy-SageMaker-Endpoint.ipynb): This notebook shows you how to 
   deploy a trained ML model taken from the Amazon SageMaker Model Registry
-  * [notebooks/01-Pipeline-Deployment](./lab/01-ml-deploy/notebooks/01-Pipeline-Deployment.ipynb): Define 
+  * [notebooks/01-Pipeline-Deployment](labs/01-ml-deploy/notebooks/01-Pipeline-Deployment.ipynb): Define 
   the workflow steps and test the entire end to end using the script for CI/CD deployment
