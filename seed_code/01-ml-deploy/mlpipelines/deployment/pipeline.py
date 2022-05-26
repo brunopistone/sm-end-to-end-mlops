@@ -11,6 +11,7 @@ from botocore.exceptions import ClientError
 from datetime import datetime
 import logging
 from sagemaker import get_execution_role
+from sagemaker.model_monitor import DataCaptureConfig
 import sagemaker.session
 from sagemaker.tensorflow import TensorFlowModel
 import traceback
@@ -135,7 +136,15 @@ def get_deployed_model():
 
         raise e
 
-def deploy_model(model, model_package_group_name, env, inference_instance_count, inference_instance_type):
+def deploy_model(
+        bucket_inference,
+        model,
+        model_package_group_name,
+        env,
+        inference_instance_count,
+        inference_instance_type,
+        kms_key,
+        monitoring_output_path):
     try:
         LOGGER.info("Deploying endpoint {}".format(model_package_group_name + "-" + env))
 
@@ -143,7 +152,12 @@ def deploy_model(model, model_package_group_name, env, inference_instance_count,
             endpoint_name=model_package_group_name + "-" + env,
             initial_instance_count=inference_instance_count,
             instance_type=inference_instance_type,
-            update_endpoint=True
+            update_endpoint=True,
+            data_capture_config=DataCaptureConfig(
+                enable_capture=True,
+                sampling_percentage=100,
+                json_content_types=["application/json"],
+                destination_s3_uri="s3://{}/{}".format(bucket_inference, monitoring_output_path))
         )
     except ClientError as e:
         stacktrace = traceback.format_exc()
@@ -151,9 +165,25 @@ def deploy_model(model, model_package_group_name, env, inference_instance_count,
 
         model_name = get_deployed_model()
 
-        update_model(model_name, model_package_group_name, env, inference_instance_count, inference_instance_type)
+        update_model(
+            bucket_inference,
+            model_name,
+            model_package_group_name,
+            env,
+            inference_instance_count,
+            inference_instance_type,
+            kms_key,
+            monitoring_output_path)
 
-def update_model(model_name, model_package_group_name, env, inference_instance_count, inference_instance_type):
+def update_model(
+        bucket_inference,
+        model_name,
+        model_package_group_name,
+        env,
+        inference_instance_count,
+        inference_instance_type,
+        kms_key,
+        monitoring_output_path):
     try:
         config_name = "{}-{}-{}".format(model_package_group_name, env, datetime.today().strftime('%Y-%m-%d-%H-%M-%S'))
 
@@ -169,7 +199,26 @@ def update_model(model_name, model_package_group_name, env, inference_instance_c
                     "InstanceType": inference_instance_type,
                     "InitialVariantWeight": 1.0
                 }
-            ]
+            ],
+            DataCaptureConfig={
+                'EnableCapture': True,
+                'InitialSamplingPercentage': 100,
+                'DestinationS3Uri': "s3://{}/{}".format(bucket_inference, monitoring_output_path),
+                'KmsKeyId': kms_key,
+                'CaptureOptions': [
+                    {
+                        'CaptureMode': 'Input'
+                    },
+                    {
+                        'CaptureMode': 'Output'
+                    }
+                ],
+                'CaptureContentTypeHeader': {
+                    'JsonContentTypes': [
+                        'application/jsonlines',
+                    ]
+                }
+            }
         )
 
         LOGGER.info(response_endpoint_config)
@@ -200,6 +249,7 @@ def get_pipeline(
     inference_instance_count,
     inference_instance_type,
     model_package_group,
+    monitoring_output_path,
     training_framework_version,
     role=None,
     pipeline_name="DeployPipeline"):
@@ -260,11 +310,14 @@ def get_pipeline(
     )
 
     deploy_model(
+        bucket_inference,
         model,
         model_package_group,
         env,
         inference_instance_count,
-        inference_instance_type)
+        inference_instance_type,
+        kms_key,
+        monitoring_output_path)
 
     # pipeline instance
     pipeline = None
