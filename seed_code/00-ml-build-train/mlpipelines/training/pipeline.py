@@ -111,13 +111,21 @@ def get_pipeline(
         name="ModelPackageGroupName", default_value=model_package_group_name
     )
 
-    processing_inputs = ParameterString(
+    processing_inputs_param = ParameterString(
         name="ProcessingInput", default_value="s3://{}/{}".format(bucket_name, processing_input_files_path)
     )
+
 
     """
         Processing parameters
     """
+
+    processing_inputs = [
+        ProcessingInput(
+            source=processing_inputs_param,
+            destination="/opt/ml/processing/input"
+        )
+    ]
 
     processing_outputs = [
         ProcessingOutput(output_name="output",
@@ -141,10 +149,8 @@ def get_pipeline(
         name="ProcessData",
         code=processing_entrypoint,
         processor=processor,
-        outputs=processing_outputs,
-        job_arguments=[
-            "--input-data", processing_inputs
-        ]
+        inputs=processing_inputs,
+        outputs=processing_outputs
     )
 
     """
@@ -230,7 +236,7 @@ def get_pipeline(
             epochs,
             model_approval_status,
             model_package_group_name,
-            processing_inputs
+            processing_inputs_param
         ],
         steps=[
             step_process,

@@ -143,12 +143,12 @@ def transform_data(df):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-data", type=str, required=True)
+    parser.add_argument("--input-data", type=str, required=False, default=None)
     args = parser.parse_args()
 
     LOGGER.info("Arguments: {}".format(args))
 
-    download_data(args, PROCESSING_PATH_INPUT)
+    # download_data(args, PROCESSING_PATH_INPUT)
 
     df = extract_data(PROCESSING_PATH_INPUT, 100)
 
