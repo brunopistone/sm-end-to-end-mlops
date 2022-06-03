@@ -1,21 +1,18 @@
 FROM python:3.7-slim-buster
 
-# Do not change this argument
-ARG APP_HOME=/opt/program
-
-# Setup the environment path
-ENV PATH="${APP_HOME}:${PATH}"
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
 
 # Upgrade pip and setuptools
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade setuptools
+RUN ${PIP} install --upgrade pip
+RUN ${PIP} install --upgrade setuptools
 
-# Set up the program in the image
-COPY src ${APP_HOME}
+RUN ${PIP} install \
+    boto3 \
+    pandas \
+    scikit-learn
 
-RUN pip3 install -r ${APP_HOME}/requirements.txt
+ENV PYTHONUNBUFFERED=TRUE
 
-# Define the working directory
-WORKDIR ${APP_HOME}
-
-ENTRYPOINT ["python3", "processing.py"]
+ENTRYPOINT ["python3"]
