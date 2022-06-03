@@ -81,7 +81,7 @@ Amazon SageMaker Pipeline used for training
   * [notebooks/02-Train-Build-Model-Custom-Script-Containerl](seed_code/00-ml-build-train/notebooks/02-Train-Build-Model-Custom-Script-Container.ipynb): SageMaker 
   End to End approach for processing data using SageMaker Processing, Training the ML model using SageMaker Training with a Custom Container by providing custom scripts,
   and Register the trained model version by using Amazon SageMaker Model Registry.
-  * [notebooks/03-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebook/03-SageMaker-Pipeline-Training.ipynb): Define 
+  * [notebooks/03-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/03-SageMaker-Pipeline-Training.ipynb): Define 
   the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
 
 ### Deploy ML models
