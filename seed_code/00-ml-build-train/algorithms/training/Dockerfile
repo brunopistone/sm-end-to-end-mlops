@@ -1,25 +1,16 @@
 FROM tensorflow/tensorflow:2.4.1
 
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade setuptools
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
 
-# Installing Framework Container modules
-#ADD dist/custom_framework_training-1.0.0.tar.gz /custom_framework_training-1.0.0.tar.gz
+RUN ${PIP} --no-cache-dir install --upgrade pip
 
-# Installing code modules
-ADD src /src
-## Installing these modules
-#fsspec
-#h5py
-#nltk
-#params-flow==0.8.2
-#sentencepiece==0.1.91
-#transformers==3.5.0
-RUN pip3 install -r /src/requirements.txt
-#RUN pip3 install /custom_framework_training-1.0.0.tar.gz
+RUN ${PIP} install \
+    pandas \
+    scikit-learn
 
-RUN rm -rf /src
-#RUN rm -rf /custom_framework_training-1.0.0.tar.gz
+WORKDIR /
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -28,6 +19,5 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8
 
-#ENV SAGEMAKER_TRAINING_MODULE custom_framework_training.training:main
-
-RUN pip3 install sagemaker-training
+RUN ${PIP} install --no-cache --upgrade \
+    sagemaker-training
