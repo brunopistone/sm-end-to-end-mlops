@@ -118,6 +118,7 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicPolicy: true
         RestrictPublicBuckets: true
+
   DefaultPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -156,6 +157,14 @@ Resources:
               - 'ec2:DescribeVpcEndpoints'
               - 'ec2:DescribeVpcs'
               - 'elastic-inference:Connect'
+              - 'elasticmapreduce:CreatePersistentAppUI'
+              - 'elasticmapreduce:DescribeCluster'
+              - 'elasticmapreduce:DescribePersistentAppUI'
+              - 'elasticmapreduce:DescribeSecurityConfiguration'
+              - 'elasticmapreduce:ListClusters'
+              - 'elasticmapreduce:ListInstances'
+              - 'elasticmapreduce:GetPersistentAppUIPresignedURL'
+              - 'elasticmapreduce:GetOnClusterAppUIPresignedURL'
               - 'iam:GetRole'
               - 'iam:ListRoles'
               - 'iam:PassRole'
@@ -168,6 +177,13 @@ Resources:
               - 'logs:PutLogEvents'
               - 'sts:AssumeRole'
             Resource: '*'
+          - Sid: SageMakerBasePolicy2
+            Effect: Allow
+            Action:
+              - 'elasticmapreduce:DescribeCluster'
+              - 'elasticmapreduce:ListInstanceGroups'
+            Resource: !Sub "arn:${AWS::Partition}:elasticmapreduce:*:*:cluster/*"
+
   KMSPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -219,6 +235,7 @@ Resources:
               - 'cloudformation:*'
               - 'cloudwatch:*'
               - 'codecommit:*'
+              - 'codebuild:*'
               - 'ecr:*'
               - 'lambda:*'
               - 'logs:*'
@@ -232,6 +249,7 @@ Resources:
               - 'iam:PassRole'
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*'
+
   SageMakerExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -244,6 +262,7 @@ Resources:
             Principal:
               Service:
                 - cloudformation.amazonaws.com
+                - codebuild.amazonaws.com
                 - lambda.amazonaws.com
                 - sagemaker.amazonaws.com
       Path: /
@@ -254,6 +273,7 @@ Resources:
         - !Ref ServicesPolicy
         - arn:aws:iam::aws:policy/ComprehendFullAccess
         - arn:aws:iam::aws:policy/TranslateFullAccess
+
   SageMakerStudioDomain:
     Type: 'AWS::SageMaker::Domain'
     Properties:
@@ -279,6 +299,7 @@ Resources:
         - VpcIdEmpty
         - '{{resolve:ssm:/networking/vpc}}'
         - !Ref VpcId
+
   EnableSageMakerProjects:
     Type: 'Custom::ResourceForEnablingSageMakerProjects'
     Properties:
@@ -288,6 +309,7 @@ Resources:
       ExecutionRole: !GetAtt
         - SageMakerExecutionRole
         - Arn
+
   EnableSageMakerProjectsLambda:
     Type: 'AWS::Lambda::Function'
     DependsOn: SageMakerStudioDomain
@@ -335,11 +357,13 @@ Resources:
         - Arn
       Runtime: python3.8
       Timeout: 120
+
   SageMakerStudioUserProfile:
     Type: 'AWS::SageMaker::UserProfile'
     Properties:
       DomainId: !Ref SageMakerStudioDomain
       UserProfileName: data-scientist
+
   JupyterApp:
     Type: 'AWS::SageMaker::App'
     DependsOn: SageMakerStudioUserProfile
@@ -348,6 +372,7 @@ Resources:
       AppType: JupyterServer
       DomainId: !Ref SageMakerStudioDomain
       UserProfileName: data-scientist
+
   DataScienceApp:
     Type: 'AWS::SageMaker::App'
     DependsOn: SageMakerStudioUserProfile
@@ -362,6 +387,7 @@ Resources:
           - !Ref 'AWS::Region'
           - datascience
       UserProfileName: data-scientist
+
   DeleteKernelGatewayAppsNoKGCondition:
     Type: 'Custom::DeleteKernelGatewayApps'
     DependsOn: SageMakerStudioUserProfile
@@ -370,6 +396,7 @@ Resources:
         - DeleteKernelGatewayAppsLambda
         - Arn
       DomainId: !Ref SageMakerStudioDomain
+
   DeleteKernelGatewayAppsKGCondition:
     Type: 'Custom::DeleteKernelGatewayApps'
     DependsOn:
@@ -379,6 +406,7 @@ Resources:
         - DeleteKernelGatewayAppsLambda
         - Arn
       DomainId: !Ref SageMakerStudioDomain
+
   DeleteKernelGatewayAppsLambda:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -435,6 +463,7 @@ Resources:
         - Arn
       Runtime: python3.8
       Timeout: 900
+
   SageMakerExecutionRoleSSM:
     Type: AWS::SSM::Parameter
     Properties:
