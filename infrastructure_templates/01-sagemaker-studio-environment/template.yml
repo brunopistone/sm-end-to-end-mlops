@@ -277,7 +277,7 @@ Resources:
   SageMakerStudioDomain:
     Type: 'AWS::SageMaker::Domain'
     Properties:
-      AppNetworkAccessType: PublicInternetOnly
+      AppNetworkAccessType: VpcOnly
       AuthMode: IAM
       DefaultUserSettings:
         ExecutionRole: !GetAtt
