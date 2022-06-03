@@ -166,12 +166,6 @@ def get_pipeline(
         training_artifact_name
     )
 
-    models_input = TrainingInput(
-        s3_data="s3://{}/models".format(
-            bucket_name
-        )
-    )
-
     training_input = TrainingInput(
         s3_data=step_process.properties.ProcessingOutputConfig.Outputs["output"].S3Output.S3Uri,
         content_type="text/csv"
@@ -212,8 +206,7 @@ def get_pipeline(
         name="TrainModel",
         estimator=estimator,
         inputs={
-            "train": training_input,
-            "models": models_input
+            "train": training_input
         }
     )
 
