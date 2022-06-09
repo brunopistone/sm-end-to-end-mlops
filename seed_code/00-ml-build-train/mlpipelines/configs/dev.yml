@@ -22,4 +22,6 @@ training:
     training_instance_type: ml.p2.xlarge
     training_hyperparameters:
         epochs: 5
+        learning_rate: 3e-5
+        batch_size: 100
         input_file: processed_data.csv

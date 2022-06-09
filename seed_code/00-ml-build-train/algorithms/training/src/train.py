@@ -92,7 +92,7 @@ def __read_data(args):
 """
     Compile tensorflow model
 """
-def compile_model(transformers_model, configs, shape, fine_tuning=False):
+def compile_model(transformers_model, configs, shape, learning_rate=3e-5, fine_tuning=False):
     try:
         input_ids_in = Input(shape=(int(shape),), name='input_token', dtype='int32')
         input_masks_in = Input(shape=(int(shape),), name='masked_token', dtype='int32')
@@ -115,7 +115,7 @@ def compile_model(transformers_model, configs, shape, fine_tuning=False):
             for layer in model.layers[:3]:
                 layer.trainable = False
 
-        optimizer = Adam(learning_rate=3e-5)
+        optimizer = Adam(learning_rate=learning_rate)
         loss_obj = CategoricalCrossentropy(from_logits=True)
 
         model.compile(optimizer=optimizer, loss=loss_obj, metrics=['accuracy'])
@@ -215,6 +215,8 @@ if __name__ == '__main__':
     parser = ArgumentParser()
 
     parser.add_argument('--epochs', type=str, default=5)
+    parser.add_argument('--learning_rate', type=float, default=3e-5)
+    parser.add_argument('--batch_size', type=int, default=100)
     parser.add_argument('--dataset_percentage', type=str, default=100)
     parser.add_argument('--input_file', type=str, default=None)
     parser.add_argument('--output-data-dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
@@ -240,9 +242,9 @@ if __name__ == '__main__':
     Train model
     '''
 
-    model = compile_model(transformers_model, transformers_configs, int(max_length))
+    model = compile_model(transformers_model, transformers_configs, int(max_length), args.learning_rate)
 
-    hystory = train_model(model, CHECKPOINT_PATH, MODEL_NAME, [train_input_ids, train_input_masks], train_labels, False, args.epochs)
+    hystory = train_model(model, CHECKPOINT_PATH, MODEL_NAME, [train_input_ids, train_input_masks], train_labels, False, args.epochs, args.batch_size)
 
     '''
     Tensorflow saving
@@ -268,7 +270,7 @@ if __name__ == '__main__':
     """
     test_input_ids, test_input_masks, test_input_segments, test_labels = tokenize_sequences(tokenizer, int(max_length), X_test, y_test)
 
-    results = model.evaluate([test_input_ids, test_input_masks], test_labels, batch_size=100)
+    results = model.evaluate([test_input_ids, test_input_masks], test_labels, batch_size=args.batch_size)
 
     if len(results) > 0:
         LOGGER.info("Test loss: {}".format(results[0]))
