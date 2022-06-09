@@ -83,6 +83,8 @@ Amazon SageMaker Pipeline used for training
   and Register the trained model version by using Amazon SageMaker Model Registry.
   * [notebooks/03-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/03-SageMaker-Pipeline-Training.ipynb): Define 
   the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
+  * [notebooks/04-Hyperparameter-Optimization](seed_code/00-ml-build-train/notebooks/04-Hyperparameter-Optimization.ipynb): Identify 
+  the best configuration set of hyperparameters for your ML algorithm by using Amazon SageMaker Hyperparameter Optimization 
 
 ### Deploy ML models
 
