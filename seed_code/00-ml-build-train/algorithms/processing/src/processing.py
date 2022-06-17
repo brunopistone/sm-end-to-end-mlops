@@ -8,6 +8,7 @@ from os.path import isfile, join
 import pandas as pd
 import pathlib
 import re
+from sklearn.model_selection import train_test_split
 import traceback
 
 logging.basicConfig(level=logging.INFO)
@@ -101,6 +102,9 @@ def extract_data(file_path, percentage=100):
 
 def load_data(df, file_path, file_name):
     try:
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+
         path = os.path.join(file_path, file_name + ".csv")
 
         LOGGER.info("Saving file in {}".format(path))
@@ -134,6 +138,8 @@ def transform_data(df):
         df["text"] = df["text"].apply(lambda x: clean_text(x))
         df["Sentiment"] = df["Sentiment"].map({"Negative": 0, "Neutral": 1, "Positive": 2})
 
+        df = df.dropna()
+
         return df
     except Exception as e:
         stacktrace = traceback.format_exc()
@@ -154,4 +160,7 @@ if __name__ == '__main__':
 
     df = transform_data(df)
 
-    load_data(df, PROCESSING_PATH_OUTPUT, "processed_data")
+    data_train, data_test = train_test_split(df, test_size=0.2)
+
+    load_data(data_train, os.path.join(PROCESSING_PATH_OUTPUT, "train"), "train")
+    load_data(data_test, os.path.join(PROCESSING_PATH_OUTPUT, "test"), "test")

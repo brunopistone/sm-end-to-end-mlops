@@ -97,7 +97,9 @@ The code structure defined for the [Deploy ML models](seed_code/01-ml-deploy) is
 [Amazon SageMaker secure MLOps](https://github.com/aws-samples/amazon-sagemaker-secure-mlops) and it contains the scripts to run 
 through CI/CD for creating or updating Amazon SageMaker Endpoints
 * [notebooks](seed_code/01-ml-deploy/notebooks): This folder contains the lab notebooks to use for this workshop:
-  * [notebooks/00-SageMaker-Endpoint](seed_code/01-ml-deploy/notebooks/00-Deploy-SageMaker-Endpoint-Monitor.ipynb): This notebook shows you how to 
+  * [notebooks/00-SageMaker-Endpoint](seed_code/01-ml-deploy/notebooks/00-Deploy-SageMaker-Endpoint.ipynb): This notebook shows you how to 
   deploy a trained ML model taken from the Amazon SageMaker Model Registry
-  * [notebooks/01-Pipeline-Deployment](seed_code/01-ml-deploy/notebooks/01-Pipeline-Deployment.ipynb): Define 
+  * [notebooks/01-Model-Monitor](seed_code/01-ml-deploy/notebooks/01-Model-Monitor.ipynb): This notebook shows you how to 
+  create Amazon SageMaker Model Monitor jobs for monitoring model quality on the deployed endpoint
+  * [notebooks/01-Pipeline-Deployment](seed_code/01-ml-deploy/notebooks/02-Pipeline-Deployment.ipynb): Define 
   the workflow steps and test the entire end to end using the script for CI/CD deployment

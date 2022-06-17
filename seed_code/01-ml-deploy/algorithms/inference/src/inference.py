@@ -47,36 +47,32 @@ def __encode(tokenizer, shape, body):
 
 def input_handler(data, context):
     try:
-        data_str = data.read().decode("utf-8")
-        LOGGER.info("data_str: {}".format(data_str))
-        LOGGER.info("type data_str: {}".format(type(data_str)))
 
-        jsonlines = data_str.split("\n")
-        LOGGER.info("jsonlines: {}".format(jsonlines))
-        LOGGER.info("type jsonlines: {}".format(type(jsonlines)))
+        LOGGER.info("Request: {}".format(data))
 
         transformed_instances = []
 
-        for jsonline in jsonlines:
-            LOGGER.info("jsonline: {}".format(jsonline))
-            LOGGER.info("type jsonline: {}".format(type(jsonline)))
+        for el in data:
+            body = el.decode("utf-8")
+            LOGGER.info("Input data: {}".format(body))
 
-            review_body = json.loads(jsonline)["features"][0]
+            LOGGER.info("Input: {}".format(body))
+            LOGGER.info("type: {}".format(type(body)))
 
-            start_lan = __detect_language(review_body)
+            start_lan = __detect_language(body)
 
             if start_lan != "en":
-                review_body = translate_service.translate_string(review_body, start_lan, "en")
+                body = translate_service.translate_string(body, start_lan, "en")
 
-                LOGGER.info("Translated sentence: {}".format(data))
+                LOGGER.info("Translated sentence: {}".format(body))
             else:
                 LOGGER.info("Detected en language")
 
-            review_body = utils.clean_text(review_body)
+            body = utils.clean_text(body)
 
-            LOGGER.info("""review_body: {}""".format(review_body))
+            LOGGER.info("review_body: {}".format(body))
 
-            input_ids, input_masks, input_segments = __encode(tokenizer, MODEL_SHAPE, review_body)
+            input_ids, input_masks, input_segments = __encode(tokenizer, MODEL_SHAPE, body)
 
             transformed_instance = {"input_token": input_ids, "masked_token": input_masks}
 
@@ -114,23 +110,17 @@ def output_handler(response, context):
 
                 prediction_proba = [round(el, 3) for el in max(predictions)]
 
-                prediction_dict = {
-                    "prediction": str(np.argmax(prediction)),
-                    "prediction_proba": str(prediction_proba)
-                }
+                predicted_classes.append(str(np.argmax(prediction)))
+                predicted_classes.append(str(max(prediction_proba)))
 
-                jsonline = json.dumps(prediction_dict)
-                LOGGER.info("jsonline: {}".format(jsonline))
-
-                predicted_classes.append(jsonline)
-                LOGGER.info("predicted_classes in the loop: {}".format(predicted_classes))
-
-            predicted_classes_jsonlines = "\n".join(predicted_classes)
-            LOGGER.info("predicted_classes_jsonlines: {}".format(predicted_classes_jsonlines))
+            LOGGER.info("Predictions: {}".format(predicted_classes))
 
             response_content_type = context.accept_header
 
-            return predicted_classes_jsonlines, response_content_type
+            LOGGER.info("Response type: {}".format(response_content_type))
+            LOGGER.info("Return data: {}".format(",".join(predicted_classes)))
+
+            return ",".join(predicted_classes), response_content_type
         else:
             LOGGER.info("{}".format(response_json))
             

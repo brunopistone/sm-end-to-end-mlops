@@ -167,7 +167,12 @@ def get_pipeline(
     )
 
     training_input = TrainingInput(
-        s3_data=step_process.properties.ProcessingOutputConfig.Outputs["output"].S3Output.S3Uri,
+        s3_data="s3://{}/{}/train".format(bucket_name, processing_output_files_path),
+        content_type="text/csv"
+    )
+
+    test_input = TrainingInput(
+        s3_data="s3://{}/{}/test".format(bucket_name, processing_output_files_path),
         content_type="text/csv"
     )
 
@@ -206,7 +211,8 @@ def get_pipeline(
         name="TrainModel",
         estimator=estimator,
         inputs={
-            "train": training_input
+            "train": training_input,
+            "test": test_input
         }
     )
 

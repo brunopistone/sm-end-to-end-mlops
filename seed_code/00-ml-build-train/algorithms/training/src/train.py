@@ -1,12 +1,12 @@
 from argparse import ArgumentParser
 from datetime import datetime
 import csv
+import glob
 import logging
 import numpy as np
 import os
 import pandas as pd
 import pickle
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 import tensorflow as tf
 from tensorflow.keras import Model
@@ -23,7 +23,8 @@ LOGGER = logging.getLogger(__name__)
 DATETIME_NOW = datetime.now().strftime("%Y-%m-%d%H:%M:%S")
 MODEL_NAME = "model"
 BASE_PATH = os.path.join("/", "opt", "ml")
-INPUT_PATH = os.path.join(BASE_PATH, "input", "data", "train")
+INPUT_PATH_TRAIN = os.path.join(BASE_PATH, "input", "data", "train")
+INPUT_PATH_TEST = os.path.join(BASE_PATH, "input", "data", "test")
 INPUT_MODELS_PATH = os.path.join(BASE_PATH, "input", "data", "models")
 CHECKPOINT_PATH = os.path.join(BASE_PATH, "checkpoints", DATETIME_NOW)
 MODEL_PATH = os.path.join(BASE_PATH, "model")
@@ -52,37 +53,42 @@ def __define_tokenizer_configs(train_set):
 """
     Read input data
 """
-def __read_data(args):
+def __read_data(files_path, args):
     try:
         LOGGER.info("Reading dataset from source...")
 
-        data = pd.read_csv(
-            os.path.join(INPUT_PATH, args.input_file),
-            sep=',',
-            quotechar='"',
-            quoting=csv.QUOTE_ALL,
-            escapechar='\\',
-            encoding='utf-8',
-            error_bad_lines=False
-        )
+        all_files = glob.glob(os.path.join(files_path, "*.csv"))
 
-        data = data.head(int(len(data) * (int(args.dataset_percentage) / 100)))
+        datasets = []
+
+        for filename in all_files:
+            data = pd.read_csv(
+                filename,
+                sep=',',
+                quotechar='"',
+                quoting=csv.QUOTE_ALL,
+                escapechar='\\',
+                encoding='utf-8',
+                error_bad_lines=False
+            )
+
+            datasets.append(data)
+
+        data = pd.concat(datasets, axis=0, ignore_index=True)
 
         data = data.dropna()
 
+        data = data.head(int(len(data) * (int(args.dataset_percentage) / 100)))
+
         data.Sentiment = data.Sentiment.astype(str)
 
-        data_train, data_test = train, test = train_test_split(data, test_size=0.2)
+        X, y = data.text, data.Sentiment
 
-        X_train, y_train, X_test, y_test = data_train.text, data_train.Sentiment, data_test.text, data_test.Sentiment
+        y = [[label] for label in y]
 
-        y_train = [[label] for label in y_train]
-        y_test = [[label] for label in y_test]
+        y = OneHotEncoder().fit_transform(y).toarray()
 
-        y_train = OneHotEncoder().fit_transform(y_train).toarray()
-        y_test = OneHotEncoder().fit_transform(y_test).toarray()
-
-        return X_train, y_train, X_test, y_test
+        return X, y
     except Exception as e:
         stacktrace = traceback.format_exc()
         LOGGER.error("{}".format(stacktrace))
@@ -215,10 +221,9 @@ if __name__ == '__main__':
     parser = ArgumentParser()
 
     parser.add_argument('--epochs', type=str, default=5)
-    parser.add_argument('--learning_rate', type=float, default=3e-5)
+    parser.add_argument('--learning_rate', type=float, default=1.45e-4)
     parser.add_argument('--batch_size', type=int, default=100)
     parser.add_argument('--dataset_percentage', type=str, default=100)
-    parser.add_argument('--input_file', type=str, default=None)
     parser.add_argument('--output-data-dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
     parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAIN'))
     parser.add_argument('--test', type=str, default=os.environ.get('SM_CHANNEL_TEST'))
@@ -232,7 +237,8 @@ if __name__ == '__main__':
     '''
     Prepare data
     '''
-    X_train, y_train, X_test, y_test = __read_data(args)
+    X_train, y_train = __read_data(INPUT_PATH_TRAIN, args)
+    X_test, y_test = __read_data(INPUT_PATH_TEST, args)
 
     total_avg, max_length = __define_tokenizer_configs(X_train.tolist())
 

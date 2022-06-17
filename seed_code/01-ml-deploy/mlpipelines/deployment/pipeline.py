@@ -148,7 +148,6 @@ def deploy_model(
             data_capture_config=DataCaptureConfig(
                 enable_capture=True,
                 sampling_percentage=100,
-                json_content_types=["application/json"],
                 destination_s3_uri="s3://{}/{}".format(bucket_inference, monitoring_output_path))
         )
     except ClientError as e:
@@ -206,6 +205,10 @@ def update_model(
                     }
                 ],
                 'CaptureContentTypeHeader': {
+                    'CsvContentTypes': [
+                        "text/csv",
+                        "CSV/Text"
+                    ],
                     'JsonContentTypes': [
                         'application/jsonlines',
                     ]
