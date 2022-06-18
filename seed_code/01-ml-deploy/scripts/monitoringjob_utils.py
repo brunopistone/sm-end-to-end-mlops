@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 from sagemaker.processing import Processor, ProcessingInput, ProcessingOutput
 
 def get_model_monitor_container_uri(region):
-    container_uri_format = '{0}.dkr.ecr.{1}.amazonaws.com/sagemaker-model-monitor-analyzer'
+    container_uri_format = '{0}.dkr.ecr.{1}.amazonaws.com/sagemaker-model-monitor-groundtruth-merger'
 
     regions_to_accounts = {
         'eu-north-1': '895015795356',
@@ -35,45 +35,46 @@ def get_file_name(url):
     return os.path.basename(a.path)
 
 
-def run_model_monitor_job_processor(region, instance_type, role, data_capture_path, statistics_path, constraints_path,
+def run_model_monitor_job_processor(region,
+                                    instance_type,
+                                    role,
+                                    endpoint_name,
+                                    data_capture_path,
+                                    ground_truth_path,
                                     reports_path,
                                     instance_count=1, preprocessor_path=None, postprocessor_path=None,
                                     publish_cloudwatch_metrics='Disabled'):
-    data_capture_sub_path = data_capture_path[data_capture_path.rfind('datacapture/'):]
-    data_capture_sub_path = data_capture_sub_path[data_capture_sub_path.find('/') + 1:]
+
+    data_capture_sub_path = data_capture_path[data_capture_path.rfind(endpoint_name):]
+    ground_truth_sub_path = ground_truth_path[ground_truth_path.find('ground'):]
+    ground_truth_sub_path = ground_truth_sub_path[ground_truth_sub_path.find('/') + 1:]
     processing_output_paths = reports_path + '/' + data_capture_sub_path
 
-    input_1 = ProcessingInput(input_name='input_1',
-                              source=data_capture_path,
-                              destination='/opt/ml/processing/input/endpoint/' + data_capture_sub_path,
+    groundtruth_input_1 = ProcessingInput(input_name='groundtruth_input_1',
+                              source=ground_truth_path,
+                              destination='/opt/ml/processing/groundtruth/' + ground_truth_sub_path,
                               s3_data_type='S3Prefix',
                               s3_input_mode='File')
 
-    baseline = ProcessingInput(input_name='baseline',
-                               source=statistics_path,
-                               destination='/opt/ml/processing/baseline/stats',
+    endpoint_input_1 = ProcessingInput(input_name='endpoint_input_1',
+                               source=data_capture_path,
+                               destination='/opt/ml/processing/input_data/' + data_capture_sub_path,
                                s3_data_type='S3Prefix',
                                s3_input_mode='File')
 
-    constraints = ProcessingInput(input_name='constraints',
-                                  source=constraints_path,
-                                  destination='/opt/ml/processing/baseline/constraints',
-                                  s3_data_type='S3Prefix',
-                                  s3_input_mode='File')
-
     outputs = ProcessingOutput(output_name='result',
                                source='/opt/ml/processing/output',
-                               destination=processing_output_paths,
+                               destination=processing_output_paths + "/merge",
                                s3_upload_mode='Continuous')
 
-    env = {'baseline_constraints': '/opt/ml/processing/baseline/constraints/' + get_file_name(constraints_path),
-           'baseline_statistics': '/opt/ml/processing/baseline/stats/' + get_file_name(statistics_path),
-           'dataset_format': '{"sagemakerCaptureJson":{"captureIndexNames":["endpointInput","endpointOutput"]}}',
-           'dataset_source': '/opt/ml/processing/input/endpoint',
+    env = {
+           'dataset_source': '/opt/ml/processing/input_data',
            'output_path': '/opt/ml/processing/output',
-           'publish_cloudwatch_metrics': publish_cloudwatch_metrics}
+           'ground_truth_source': '/opt/ml/processing/groundtruth',
+           'publish_cloudwatch_metrics': publish_cloudwatch_metrics
+    }
 
-    inputs = [input_1, baseline, constraints]
+    inputs = [groundtruth_input_1, endpoint_input_1]
 
     if postprocessor_path:
         env['post_analytics_processor_script'] = '/opt/ml/processing/code/postprocessing/' + get_file_name(
