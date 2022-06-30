@@ -15,6 +15,15 @@ Everything can be tested by using the example notebooks for running training on 
 * [TensorFlow](https://www.tensorflow.org/)
 * [Huggingface - Amazon Bort](https://huggingface.co/amazon/bort)
 
+## Machine Learning Task
+
+In this example, we are performing a Sentiment Analysis task by creating a multiclass classification model using 
+[Huggingface - Amazon Bort](https://huggingface.co/amazon/bort) and training on a dataset of Negative, Neutral, Positive tweets.
+
+* Negative - 0
+* Neutral - 1
+* Positive - 2
+
 ## Environment Setup
 
 Setup the ML environment by deploying the [CloudFormation](./infrastructure_templates) templates described as below:
