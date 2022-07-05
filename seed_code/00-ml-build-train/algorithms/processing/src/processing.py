@@ -69,14 +69,20 @@ def clean_text(text):
         if isinstance(word, bytes):
             word = word.decode("utf-8")
 
-    text = ' '.join(word_list)
+    text = " ".join(word_list)
 
-    return text
+    if not any(c.isalpha() for c in text):
+        return ""
+    else:
+        return text
 
 def convert_date(date):
     date = time.mktime(datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").timetuple())
 
-    return date
+    if isinstance(date, float):
+        return date
+    else:
+        return ""
 
 def extract_data(file_path, percentage=100):
     try:
@@ -142,24 +148,26 @@ def transform_data(df):
         df = df.dropna()
 
         df["user_name"] = df["user_name"].apply(lambda x: clean_text(x))
-
         df["text"] = df["text"].apply(lambda x: clean_text(x))
 
-        df["Sentiment"] = df["Sentiment"].map({"Negative": 0, "Neutral": 1, "Positive": 2})
-
+        df['user_name'] = df['user_name'].map(lambda x: x.strip())
         df['user_name'] = df['user_name'].replace('', np.nan)
         df['user_name'] = df['user_name'].replace(' ', np.nan)
 
+        df['date'] = df['date'].map(lambda x: x.strip())
         df['date'] = df['date'].replace('', np.nan)
         df['date'] = df['date'].replace(' ', np.nan)
+        df["date"] = df["date"].apply(lambda x: convert_date(x))
 
+        df['text'] = df['text'].map(lambda x: x.strip())
         df['text'] = df['text'].replace('', np.nan)
         df['text'] = df['text'].replace(' ', np.nan)
 
+        df['Sentiment'] = df['Sentiment'].map(lambda x: x.strip())
         df['Sentiment'] = df['Sentiment'].replace('', np.nan)
         df['Sentiment'] = df['Sentiment'].replace(' ', np.nan)
 
-        df["date"] = df["date"].apply(lambda x: convert_date(x))
+        df["Sentiment"] = df["Sentiment"].map({"Negative": 0, "Neutral": 1, "Positive": 2})
 
         df = df.dropna()
 
