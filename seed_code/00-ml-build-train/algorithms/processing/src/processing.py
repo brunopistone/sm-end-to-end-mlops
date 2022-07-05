@@ -1,14 +1,17 @@
 import argparse
 import boto3
 import csv
+import datetime
+import emoji
 import logging
+import numpy as  np
 import os
 from os import listdir
 from os.path import isfile, join
 import pandas as pd
-import pathlib
 import re
 from sklearn.model_selection import train_test_split
+import time
 import traceback
 
 logging.basicConfig(level=logging.INFO)
@@ -24,50 +27,56 @@ PROCESSING_PATH_OUTPUT = os.path.join(PROCESSING_PATH, "output")
 
 def clean_text(text):
     text = text.lower()
+
+    text = text.lstrip()
+    text = text.rstrip()
+
     text = re.sub("\[.*?\]", "", text)
     text = re.sub("https?://\S+|www\.\S+", "", text)
     text = re.sub("\n", "", text)
     text = " ".join(filter(lambda x:x[0]!="@", text.split()))
+
+    emoji_pattern = re.compile("["
+                               u"\U0001F600-\U0001F64F"  # emoticons
+                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                               u"\U0001F1F2-\U0001F1F4"  # Macau flag
+                               u"\U0001F1E6-\U0001F1FF"  # flags
+                               u"\U0001F600-\U0001F64F"
+                               u"\U00002702-\U000027B0"
+                               u"\U000024C2-\U0001F251"
+                               u"\U0001f926-\U0001f937"
+                               u"\U0001F1F2"
+                               u"\U0001F1F4"
+                               u"\U0001F620"
+                               u"\u200d"
+                               u"\u2640-\u2642"
+                               "]+", flags=re.UNICODE)
+
+    text = emoji_pattern.sub(r'', text)
+
+    text = emoji.replace_emoji(text, "")
+
+    text = text.replace("u'", "'")
+
+    text = text.encode("ascii", "ignore")
+    text = text.decode()
+
+    word_list = text.split(' ')
+
+    for word in word_list:
+        if isinstance(word, bytes):
+            word = word.decode("utf-8")
+
+    text = ' '.join(word_list)
+
     return text
 
-def download_dir(client, resource, source_prefix, local="/tmp", bucket="your_bucket"):
-    paginator = client.get_paginator("list_objects")
+def convert_date(date):
+    date = time.mktime(datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").timetuple())
 
-    for result in paginator.paginate(Bucket=bucket, Delimiter="/", Prefix=source_prefix):
-        if result.get("CommonPrefixes") is not None:
-            for subdir in result.get("CommonPrefixes"):
-                download_dir(client, resource, subdir.get("Prefix"), local, bucket)
-
-        for file in result.get("Contents", []):
-            LOGGER.info("File {}".format(file.get("Key").replace(source_prefix, "")))
-            dest_pathname = os.path.join(local, file.get("Key").replace(source_prefix, ""))
-
-            if not os.path.exists(os.path.dirname(dest_pathname)):
-                LOGGER.info("Creating os.path.dirname(dest_pathname)")
-                os.makedirs(os.path.dirname(dest_pathname))
-
-            if not file.get("Key").endswith("/"):
-                LOGGER.info("Download {} in {}".format(file.get("Key"), dest_pathname))
-                resource.meta.client.download_file(bucket, file.get("Key"), dest_pathname)
-
-def download_data(args, dir):
-
-    pathlib.Path(dir).mkdir(parents=True, exist_ok=True)
-
-    bucket_input = args.input_data.split("/")[2]
-    input_data = "/".join(args.input_data.split("/")[3:])
-
-    if pathlib.Path(input_data).suffix != "":
-        input_data = "/".join(args.input_data.split("/")[3:-1])
-
-    boto3.setup_default_session()
-
-    LOGGER.info("Downloading s3://{}/{}/".format(bucket_input, input_data))
-    download_dir(client, resource, "{}/".format(input_data), dir, bucket=bucket_input)
-
-    downloaded_files = [f for f in listdir(dir) if isfile(join(dir, f))]
-
-    LOGGER.info("Downloaded files: {}".format(downloaded_files))
+    return date
 
 def extract_data(file_path, percentage=100):
     try:
@@ -126,19 +135,35 @@ def load_data(df, file_path, file_name):
 
 def transform_data(df):
     try:
-        df = df[["text", "Sentiment"]]
+        df = df[["user_name", "date", "text", "Sentiment"]]
 
         LOGGER.info("Original count: {}".format(len(df.index)))
 
-        df = df[df["text"].notna()]
-        df = df[df["Sentiment"].notna()]
+        df = df.dropna()
 
-        LOGGER.info("Current count: {}".format(len(df.index)))
+        df["user_name"] = df["user_name"].apply(lambda x: clean_text(x))
 
         df["text"] = df["text"].apply(lambda x: clean_text(x))
+
         df["Sentiment"] = df["Sentiment"].map({"Negative": 0, "Neutral": 1, "Positive": 2})
 
+        df['user_name'] = df['user_name'].replace('', np.nan)
+        df['user_name'] = df['user_name'].replace(' ', np.nan)
+
+        df['date'] = df['date'].replace('', np.nan)
+        df['date'] = df['date'].replace(' ', np.nan)
+
+        df['text'] = df['text'].replace('', np.nan)
+        df['text'] = df['text'].replace(' ', np.nan)
+
+        df['Sentiment'] = df['Sentiment'].replace('', np.nan)
+        df['Sentiment'] = df['Sentiment'].replace(' ', np.nan)
+
+        df["date"] = df["date"].apply(lambda x: convert_date(x))
+
         df = df.dropna()
+
+        LOGGER.info("Current count: {}".format(len(df.index)))
 
         return df
     except Exception as e:
@@ -149,12 +174,9 @@ def transform_data(df):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-data", type=str, required=False, default=None)
     args = parser.parse_args()
 
     LOGGER.info("Arguments: {}".format(args))
-
-    # download_data(args, PROCESSING_PATH_INPUT)
 
     df = extract_data(PROCESSING_PATH_INPUT, 100)
 

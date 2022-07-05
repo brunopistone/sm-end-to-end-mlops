@@ -76,6 +76,8 @@ def __read_data(files_path, args):
 
         data = pd.concat(datasets, axis=0, ignore_index=True)
 
+        data = data[["text", "Sentiment"]]
+
         data = data.dropna()
 
         data = data.head(int(len(data) * (int(args.dataset_percentage) / 100)))

@@ -24,6 +24,22 @@ In this example, we are performing a Sentiment Analysis task by creating a multi
 * Neutral - 1
 * Positive - 2
 
+## Content overview
+
+In this repository, you will cover an end-to-end approach for building, training, deploying, and monitoring a ML model for 
+fraud detection by using Amazon SageMaker.
+
+1. Data Visualization using Amazon SageMaker Studio Notebooks
+2. Prepare data for training using Amazon SageMaker Processing, by using [FrameworkProcessor](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html) 
+for installing custom python modules
+3. Store feature using [Amazon SageMaker Feature Store](https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store-getting-started.html)
+4. Train, and version ML models using Amazon SageMaker Jobs and Amazon SageMaker Model Registry
+5. Build a custom container using the [sagemaker-training-toolkit](https://github.com/aws/sagemaker-training-toolkit) for 
+training ML models
+6. Find hyperparameters combination using Amazon SageMaker Hyperparameter Optimization Jobs
+7. Deploy Real-Time endpoints using Amazon SageMaker Hosting Services
+8. Monitor the quality of your model using Amazon SageMaker Model Monitoring
+
 ## Environment Setup
 
 Setup the ML environment by deploying the [CloudFormation](./infrastructure_templates) templates described as below:
@@ -84,16 +100,20 @@ Amazon SageMaker Pipeline used for training
 * [notebooks](seed_code/00-model-build-train/notebooks): This folder contains the lab notebooks to use for this workshop:
   * [notebooks/00-Data-Visualization](seed_code/00-ml-build-train/notebooks/00-Data-Visualization.ipynb): Explore the input data and test the processing scripts 
   in the notebook
-  * [notebooks/01-Training-Build-Model](seed_code/00-ml-build-train/notebooks/01-Train-Build-Model.ipynb): SageMaker 
+  * [notebooks/01-Prepare-Data-ML](seed_code/00-ml-build-train/notebooks/01-Prepare-Data-ML.ipynb): Define a Python Script and create jobs for data processing using 
+  Amazon SageMaker Processing
+  * [notebooks/02-Store-Features](seed_code/00-ml-build-train/notebooks/02-Store-Features.ipynb): Store features from prepared data using 
+  Amazon SageMaker Feature Store
+  * [notebooks/03-Training-Build-Model](seed_code/00-ml-build-train/notebooks/03-Train-Build-Model.ipynb): SageMaker 
   End to End approach for processing data using SageMaker Processing, Training the ML model using SageMaker Training, Register 
   the trained model version by using Amazon SageMaker Model Registry.
-  * [notebooks/02-Train-Build-Model-Custom-Script-Containerl](seed_code/00-ml-build-train/notebooks/02-Train-Build-Model-Custom-Script-Container.ipynb): SageMaker 
+  * [notebooks/04-Train-Build-Model-Custom-Script-Containerl](seed_code/00-ml-build-train/notebooks/04-Train-Build-Model-Custom-Script-Container.ipynb): SageMaker 
   End to End approach for processing data using SageMaker Processing, Training the ML model using SageMaker Training with a Custom Container by providing custom scripts,
   and Register the trained model version by using Amazon SageMaker Model Registry.
-  * [notebooks/03-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/03-SageMaker-Pipeline-Training.ipynb): Define 
-  the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
-  * [notebooks/04-Hyperparameter-Optimization](seed_code/00-ml-build-train/notebooks/04-Hyperparameter-Optimization.ipynb): Identify 
+  * [notebooks/05-Hyperparameter-Optimization](seed_code/00-ml-build-train/notebooks/05-Hyperparameter-Optimization.ipynb): Identify 
   the best configuration set of hyperparameters for your ML algorithm by using Amazon SageMaker Hyperparameter Optimization 
+  * [notebooks/06-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/06-SageMaker-Pipeline-Training.ipynb): Define 
+  the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
 
 ### Deploy ML models
 
@@ -112,3 +132,75 @@ through CI/CD for creating or updating Amazon SageMaker Endpoints
   create Amazon SageMaker Model Monitor jobs for monitoring model quality on the deployed endpoint
   * [notebooks/01-Pipeline-Deployment](seed_code/01-ml-deploy/notebooks/02-Pipeline-Deployment.ipynb): Define 
   the workflow steps and test the entire end to end using the script for CI/CD deployment
+
+## CI/CD
+
+The [CloudFormation templates](./infrastructure_templates) provided are creating a fully worked ML environment with CI/CD pipelines for automating the training 
+of ML models and the deployment of real-time endpoints.
+
+By starting from the AWS CodeCommit repositories created, you can customize the execution of CI/CD pipelines by editing the configurations 
+for the repositories *ml-build-train* and *ml-deploy*.
+
+![AWS CodeCommit Repositories](./docs/code-repos.png "AWS CodeCommit Repositories")
+
+Examples:
+
+```
+training:
+    pipeline_name: MLOpsTrainPipeline
+    region: eu-west-1
+    role: # Execution role name for SageMaker
+    kms_account_id: # AWS Account ID where the KMS key was created
+    kms_alias: ml-kms
+    bucket_name: # Amazon S3 Bucket where ML models will be stored
+    inference_instance_type: ml.m5.xlarge
+    model_package_group_name: ml-end-to-end-group
+    processing_artifact_path: artifact/processing
+    processing_artifact_name: sourcedir.tar.gz
+    processing_framework_version: 0.23-1
+    processing_instance_count: 1
+    processing_instance_type: ml.t3.large
+    processing_input_files_path: data/input
+    processing_output_files_path: data/output
+    training_artifact_path: artifact/training
+    training_artifact_name: sourcedir.tar.gz
+    training_output_files_path: models
+    training_framework_version: 2.4
+    training_python_version: py37
+    training_instance_count: 1
+    training_instance_type: ml.p2.xlarge
+    training_hyperparameters:
+        epochs: 5
+        learning_rate: 1.45e-4
+        batch_size: 100
+```
+
+```
+deployment:
+    pipeline_name: MLOpsDeploymentPipeline
+    region: eu-west-1
+    kms_account_id: # AWS Account ID where the KMS key was created
+    kms_alias: ml-kms
+    env: dev
+    role:
+    bucket_artifacts: # Amazon S3 Bucket where ML model artifacts are stored
+    bucket_inference: # Amazon S3 Bucket for ML inference
+    inference_artifact_path: artifact/inference
+    inference_artifact_name: sourcedir.tar.gz
+    inference_instance_count: 1
+    inference_instance_type: ml.m5.xlarge
+    model_package_group: ml-end-to-end-group
+    monitoring_output_path: data/monitoring/captured
+    training_framework_version: 2.4
+```
+
+The pushes in the two AWS CodeCommit repositories will automate the execution of the AWS CodePipeline for executing the training 
+using the [Amazon SageMaker Pipeline](./seed_code/00-ml-build-train/mlpipelines/training/pipeline.py) and the [deployment](./seed_code/01-ml-deploy/mlpipelines/deployment/pipeline.py)
+of a real-time endpoint.
+
+![AWS CodePipelines](./docs/code-pipelines.png "AWS CodePipelines")
+
+For automating the deployment of a ML model, an Amazon EventBridge Rule for monitoring updates in the Amazon SageMaker Model Package group is created, 
+by targeting the AWS CodePipeline for deployment.
+
+![AWS EventBridge](./docs/event-rule.png "AWS EventBridge")

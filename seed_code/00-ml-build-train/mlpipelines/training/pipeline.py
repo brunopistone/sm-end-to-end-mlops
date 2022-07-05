@@ -3,9 +3,9 @@ import logging
 import sagemaker
 from sagemaker import get_execution_role
 from sagemaker.inputs import TrainingInput
-from sagemaker.processing import ProcessingInput, ProcessingOutput
+from sagemaker.processing import FrameworkProcessor, ProcessingInput, ProcessingOutput
 import sagemaker.session
-from sagemaker.sklearn.processing import SKLearnProcessor
+from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.workflow.parameters import ParameterString
 from sagemaker.workflow.pipeline import Pipeline
@@ -58,7 +58,8 @@ def get_pipeline(
     bucket_name,
     inference_instance_type,
     model_package_group_name,
-    processing_entrypoint,
+    processing_artifact_path,
+    processing_artifact_name,
     processing_framework_version,
     processing_instance_count,
     processing_instance_type,
@@ -136,8 +137,15 @@ def get_pipeline(
         Processing step
     """
 
-    processor = SKLearnProcessor(
-        framework_version=str(processing_framework_version),
+    processing_source_dir = "s3://{}/{}/{}".format(
+        bucket_name,
+        processing_artifact_path,
+        processing_artifact_name
+    )
+
+    processor = FrameworkProcessor(
+        estimator_cls=SKLearn,
+        framework_version=processing_framework_version,
         role=role,
         instance_count=processing_instance_count,
         instance_type=processing_instance_type,
@@ -145,12 +153,19 @@ def get_pipeline(
         sagemaker_session=sagemaker_session
     )
 
-    step_process = ProcessingStep(
-        name="ProcessData",
-        code=processing_entrypoint,
-        processor=processor,
+    run_args = processor.get_run_args(
+        "processing.py",
+        source_dir=processing_source_dir,
         inputs=processing_inputs,
         outputs=processing_outputs
+    )
+
+    step_process = ProcessingStep(
+        name="ProcessData",
+        code=run_args.code,
+        processor=processor,
+        inputs=run_args.inputs,
+        outputs=run_args.outputs
     )
 
     """

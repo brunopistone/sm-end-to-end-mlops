@@ -7,7 +7,8 @@ training:
     bucket_name:
     inference_instance_type: ml.m5.xlarge
     model_package_group_name: ml-end-to-end-group
-    processing_entrypoint: ./../algorithms/processing/src/processing.py
+    processing_artifact_path: artifact/processing
+    processing_artifact_name: sourcedir.tar.gz
     processing_framework_version: 0.23-1
     processing_instance_count: 1
     processing_instance_type: ml.t3.large
