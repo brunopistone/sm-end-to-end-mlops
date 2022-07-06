@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.4.1
+FROM tensorflow/tensorflow:2.4.1-gpu-jupyter
 
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
