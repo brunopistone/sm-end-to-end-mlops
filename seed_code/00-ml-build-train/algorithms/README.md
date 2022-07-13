@@ -13,9 +13,7 @@ Parameters:
 Example:
 
 ```
-./buildspec.sh training isengard-bpistone-bert-profanity-dev
-
-./buildspec.sh inference isengard-bpistone-bert-profanity-dev
+./buildspec.sh training test-bucket
 ```
 
 ## build_image.sh
@@ -33,8 +31,12 @@ Parameters:
 ./build_image.sh <ALGORITHM_NAME> <REGISTRY_NAME> <IMAGE_TAG> <DOCKER_FILE>
 ```
 
-Example:
+Examples:
 
 ```
-./build_image.sh processing bert-pre-processing latest Dockerfile
+./build_image.sh processing sm-end-to-end-preprocessing-mlops latest Dockerfile
+```
+
+```
+./build_image.sh processing sm-end-to-end-bert-mlops latest Dockerfile
 ```
