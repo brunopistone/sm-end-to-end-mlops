@@ -17,11 +17,11 @@ training:
     training_artifact_path: artifact/training
     training_artifact_name: sourcedir.tar.gz
     training_output_files_path: models
-    training_framework_version: 2.4
+    training_framework_version: 2.5
     training_python_version: py37
     training_instance_count: 1
     training_instance_type: ml.p2.xlarge
     training_hyperparameters:
-        epochs: 5
+        epochs: 6
         learning_rate: 1.45e-4
         batch_size: 100

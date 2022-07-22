@@ -10,7 +10,15 @@ Parameters:
 .buildspec.sh <ALGORITHM_NAME> <ACCOUNT_ID> <S3_BUCKET_NAME> <KMS_ALIAS>
 ```
 
-Example:
+### Example:
+
+#### Processing
+
+```
+./buildspec.sh processing test-bucket
+```
+
+#### Training
 
 ```
 ./buildspec.sh training test-bucket
@@ -25,18 +33,30 @@ Parameters:
 * REGISTRY_NAME: Mandatory - Name of the ECR repository you want to use for pushing the image
 * IMAGE_TAG: Mandatory - Tag to apply to the ECR image
 * DOCKER_FILE: Mandatory - Dockerfile to build
-* AWS_PROFILE: Optional - AWS profile to use for pushing the image on ECR
+* PLATFORM: Optional - Build the docker image for a specific Platform
 
 ```
-./build_image.sh <ALGORITHM_NAME> <REGISTRY_NAME> <IMAGE_TAG> <DOCKER_FILE>
+./build_image.sh <ALGORITHM_NAME> <REGISTRY_NAME> <IMAGE_TAG> <DOCKER_FILE> <PLATFORM>
 ```
 
-Examples:
+### Examples:
+
+#### Processing
 
 ```
-./build_image.sh processing sm-end-to-end-preprocessing-mlops latest Dockerfile
+./build_image.sh processing sm-end-to-end-preprocessing-mlops-custom latest docker/custom-container/Dockerfile linux/amd64
 ```
 
 ```
-./build_image.sh processing sm-end-to-end-bert-mlops latest Dockerfile
+./build_image.sh processing sm-end-to-end-preprocessing-mlops latest docker/custom-script/Dockerfile linux/amd64
+```
+
+#### Training
+
+```
+./build_image.sh training sm-end-to-end-bert-mlops-custom latest docker/custom-container/Dockerfile linux/amd64
+```
+
+```
+./build_image.sh training sm-end-to-end-bert-mlops latest docker/custom-script/Dockerfile linux/amd64
 ```

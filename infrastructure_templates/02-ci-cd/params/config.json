@@ -4,6 +4,6 @@
     "PipelineSuffix": "ml-end-to-end",
     "RepositoryTrainingName": "ml-build-train",
     "RepositoryDeploymentName": "ml-deploy",
-    "S3BucketArtifacts": ""
+    "S3BucketArtifacts": "isengard-bpistone-ml-end-to-end-dev"
   }
 }

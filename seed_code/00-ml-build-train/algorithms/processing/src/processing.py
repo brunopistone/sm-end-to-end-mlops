@@ -79,10 +79,7 @@ def clean_text(text):
 def convert_date(date):
     date = time.mktime(datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").timetuple())
 
-    if isinstance(date, float):
-        return date
-    else:
-        return ""
+    return date
 
 def extract_data(file_path, percentage=100):
     try:

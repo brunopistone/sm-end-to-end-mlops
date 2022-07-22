@@ -25,23 +25,23 @@ Parameters:
 #### Networking
 
 ```
-./buildspec.sh 00-networking test-bucket
+./buildspec.sh 00-networking isengard-bpistone-ml-end-to-end-dev
 ```
 
 #### SageMaker Studio Environment
 
 ```
-./buildspec.sh 01-sagemaker-studio-environment test-bucket
+./buildspec.sh 01-sagemaker-studio-environment isengard-bpistone-ml-end-to-end-dev
 ```
 
 #### CI/CD
 
 ```
-./buildspec.sh 02-ci-cd test-bucket
+./buildspec.sh 02-ci-cd isengard-bpistone-ml-end-to-end-dev
 ```
 
 #### ML Environment
 
 ```
-./buildspec.sh 03-ml-environment test-bucket
+./buildspec.sh 03-ml-environment isengard-bpistone-ml-end-to-end-dev
 ```

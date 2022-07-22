@@ -100,19 +100,23 @@ Amazon SageMaker Pipeline used for training
 * [notebooks](seed_code/00-model-build-train/notebooks): This folder contains the lab notebooks to use for this workshop:
   * [notebooks/00-Data-Visualization](seed_code/00-ml-build-train/notebooks/00-Data-Visualization.ipynb): Explore the input data and test the processing scripts 
   in the notebook
-  * [notebooks/01-Prepare-Data-ML](seed_code/00-ml-build-train/notebooks/01-Prepare-Data-ML.ipynb): Define a Python Script and create jobs for data processing using 
+  * [notebooks/01-Prepare-Data-ML-Framework-Container](seed_code/00-ml-build-train/notebooks/01-Prepare-Data-ML-Framework-Container.ipynb): Define a Python Script and create jobs for data processing using 
   Amazon SageMaker Processing
   * [notebooks/02-Prepare-Data-ML-Custom-Script-Container](seed_code/00-ml-build-train/notebooks/02-Prepare-Data-ML-Custom-Script-Container.ipynb): Create jobs for data processing using 
-  Amazon SageMaker Processing with a Custom Container by providing a custom script
-  * [notebooks/03-Store-Features](seed_code/00-ml-build-train/notebooks/03-Store-Features.ipynb): Store features from prepared data using 
+  Amazon SageMaker Processing with a Custom Container by providing a Custom Script
+  * [notebooks/03-Prepare-Data-ML-Custom-Container](seed_code/00-ml-build-train/notebooks/03-Prepare-Data-ML-Custom-Container.ipynb): Create jobs for data processing using 
+  Amazon SageMaker Processing with by using a Custom Container (*BYOC*)
+  * [notebooks/04-Store-Features](seed_code/00-ml-build-train/notebooks/04-Store-Features.ipynb): Store features from prepared data using 
   Amazon SageMaker Feature Store
-  * [notebooks/04-Training-Build-Model](seed_code/00-ml-build-train/notebooks/04-Train-Build-Model.ipynb): Train a ML model using SageMaker Training, Register 
+  * [notebooks/05-Training-Build-Model-Framework-Container](seed_code/00-ml-build-train/notebooks/05-Train-Build-Model-Framework-Container.ipynb): Train a ML model using SageMaker Training, Register 
   the trained model version by using Amazon SageMaker Model Registry.
-  * [notebooks/05-Train-Build-Model-Custom-Script-Containerl](seed_code/00-ml-build-train/notebooks/05-Train-Build-Model-Custom-Script-Container.ipynb): 
-  Train a ML model using SageMaker Training with a Custom Container by providing custom scripts, and Register the trained model version by using Amazon SageMaker Model Registry.
-  * [notebooks/06-Hyperparameter-Optimization](seed_code/00-ml-build-train/notebooks/06-Hyperparameter-Optimization.ipynb): Identify 
+  * [notebooks/06-Train-Build-Model-Custom-Script-Containerl](seed_code/00-ml-build-train/notebooks/06-Train-Build-Model-Custom-Script-Container.ipynb): 
+  Train a ML model using SageMaker Training with a *Custom Container* by providing *Custom Scripts*, and Register the trained model version by using Amazon SageMaker Model Registry.
+  * [notebooks/07-Train-Build-Model-Custom-Container](seed_code/00-ml-build-train/notebooks/07-Train-Build-Model-Custom-Container.ipynb): 
+  Train a ML model using SageMaker Training by using a Custom Container (*BYOC*), and Register the trained model version by using Amazon SageMaker Model Registry.
+  * [notebooks/08-Hyperparameter-Optimization](seed_code/00-ml-build-train/notebooks/08-Hyperparameter-Optimization.ipynb): Identify 
   the best configuration set of hyperparameters for your ML algorithm by using Amazon SageMaker Hyperparameter Optimization 
-  * [notebooks/07-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/07-SageMaker-Pipeline-Training.ipynb): Define 
+  * [notebooks/09-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/09-SageMaker-Pipeline-Training.ipynb): Define 
   the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
 
 ### Deploy ML models

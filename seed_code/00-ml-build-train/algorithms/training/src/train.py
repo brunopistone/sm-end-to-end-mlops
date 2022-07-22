@@ -1,7 +1,10 @@
-from argparse import ArgumentParser
+#!/usr/bin/env python
+
+from argparse import ArgumentParser, Namespace
 from datetime import datetime
 import csv
 import glob
+import json
 import logging
 import numpy as np
 import os
@@ -98,6 +101,37 @@ def __read_data(files_path, args):
         raise e
 
 """
+    Read hyperparameters
+"""
+def __read_params():
+    try:
+        parser = ArgumentParser()
+
+        parser.add_argument('--epochs', type=str, default=5)
+        parser.add_argument('--learning_rate', type=float, default=1.45e-4)
+        parser.add_argument('--batch_size', type=int, default=100)
+        parser.add_argument('--dataset_percentage', type=str, default=100)
+        parser.add_argument('--output-data-dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
+        parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAIN'))
+        parser.add_argument('--test', type=str, default=os.environ.get('SM_CHANNEL_TEST'))
+        parser.add_argument('--model_dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
+
+        args = parser.parse_args()
+
+        if len(vars(args)) == 0:
+            with open(PARAM_FILE, 'r') as f:
+                training_params = json.load(f)
+
+            args = Namespace(**training_params)
+
+        return args
+    except Exception as e:
+        stacktrace = traceback.format_exc()
+        LOGGER.error("{}".format(stacktrace))
+
+        raise e
+
+"""
     Compile tensorflow model
 """
 def compile_model(transformers_model, configs, shape, learning_rate=3e-5, fine_tuning=False):
@@ -105,8 +139,8 @@ def compile_model(transformers_model, configs, shape, learning_rate=3e-5, fine_t
         input_ids_in = Input(shape=(int(shape),), name='input_token', dtype='int32')
         input_masks_in = Input(shape=(int(shape),), name='masked_token', dtype='int32')
 
-        encoder, pooler = transformers_model(input_ids_in, attention_mask=input_masks_in)
-        X = Dense(117, activation="relu")(pooler)
+        bort_model = transformers_model(input_ids_in, attention_mask=input_masks_in)
+        X = Dense(117, activation="relu")(bort_model.pooler_output)
         X = Dropout(configs.hidden_dropout_prob)(X)
         X = Dense(
             3,
@@ -220,21 +254,12 @@ def tokenize_sequences(tokenizer, max_seq_length, data, labels):
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser()
-
-    parser.add_argument('--epochs', type=str, default=5)
-    parser.add_argument('--learning_rate', type=float, default=1.45e-4)
-    parser.add_argument('--batch_size', type=int, default=100)
-    parser.add_argument('--dataset_percentage', type=str, default=100)
-    parser.add_argument('--output-data-dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
-    parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAIN'))
-    parser.add_argument('--test', type=str, default=os.environ.get('SM_CHANNEL_TEST'))
-    parser.add_argument('--model_dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
-
-    args = parser.parse_args()
+    args = __read_params()
 
     transformers_model, transformers_configs = retrieve_transformes("amazon/bort")
     tokenizer = AutoTokenizer.from_pretrained("amazon/bort")
+
+    model = compile_model(transformers_model, transformers_configs, int(177), args.learning_rate)
 
     '''
     Prepare data
@@ -252,7 +277,7 @@ if __name__ == '__main__':
 
     model = compile_model(transformers_model, transformers_configs, int(max_length), args.learning_rate)
 
-    hystory = train_model(model, CHECKPOINT_PATH, MODEL_NAME, [train_input_ids, train_input_masks], train_labels, False, args.epochs, args.batch_size)
+    history = train_model(model, CHECKPOINT_PATH, MODEL_NAME, [train_input_ids, train_input_masks], train_labels, False, args.epochs, args.batch_size)
 
     '''
     Tensorflow saving

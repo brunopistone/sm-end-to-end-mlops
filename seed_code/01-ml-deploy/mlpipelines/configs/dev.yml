@@ -13,4 +13,4 @@ deployment:
     inference_instance_type: ml.m5.xlarge
     model_package_group: ml-end-to-end-group
     monitoring_output_path: data/monitoring/captured
-    training_framework_version: 2.4
+    training_framework_version: 2.5
