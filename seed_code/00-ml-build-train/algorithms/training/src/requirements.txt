@@ -1,5 +1,4 @@
 fsspec
 h5py
-nltk
 params-flow==0.8.2
 transformers

@@ -1,5 +1,6 @@
 import html
 import logging
+import numpy as np
 import os
 import pickle
 import re
@@ -42,31 +43,31 @@ def load_pickle(file_path, file_name):
 
         raise e
 
-def tokenize_sequence(tokenizer, max_seq_length, data):
+def tokenize_sequences(tokenizer, max_seq_length, data):
     try:
         input_ids = []
         input_masks = []
         input_segments = []
 
-        bert_input = tokenizer.encode_plus(
-            data,
-            add_special_tokens=True,
-            max_length=max_seq_length,
-            truncation=True,
-            padding='max_length',
-            return_attention_mask=True,
-            return_token_type_ids=True
-        )
+        for sentence in data:
+            bert_input = tokenizer.encode_plus(
+                sentence,
+                add_special_tokens=True,
+                max_length=max_seq_length,
+                truncation=True,
+                padding='max_length',
+                return_attention_mask=True,
+                return_token_type_ids=True
+            )
 
-        input_ids.append(bert_input['input_ids'])
-        input_masks.append(bert_input['attention_mask'])
-        input_segments.append(bert_input['token_type_ids'])
+            input_ids.append(bert_input['input_ids'])
+            input_masks.append(bert_input['attention_mask'])
+            input_segments.append(bert_input['token_type_ids'])
 
-        return bert_input['input_ids'], bert_input['attention_mask'], bert_input['token_type_ids']
+        return np.asarray(input_ids, dtype='int32'), np.asarray(input_masks, dtype='int32'), np.asarray(
+            input_segments, dtype='int32')
     except Exception as e:
         stacktrace = traceback.format_exc()
-
         logger.error("{}".format(stacktrace))
-        print("{}".format(stacktrace))
 
         raise e

@@ -1,13 +1,3 @@
-import subprocess
-import sys
-
-subprocess.check_call([sys.executable, "-m", "pip", "install", "boto3"])
-subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas"])
-subprocess.check_call([sys.executable, "-m", "pip", "install", "params-flow==0.8.2"])
-subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
-subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow==2.5.0"])
-subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers"])
-
 import boto3
 import json
 import logging
@@ -26,7 +16,6 @@ comprehend_client = boto3.client("comprehend")
 
 MODEL_SHAPE = 144
 
-
 def __detect_language(body):
     try:
         results = comprehend_client.detect_dominant_language(Text=body)
@@ -40,12 +29,10 @@ def __detect_language(body):
 
         raise e
 
-
 def __encode(tokenizer, shape, body):
     input_ids, input_masks, input_segments = utils.tokenize_sequence(tokenizer, shape, body)
 
     return input_ids, input_masks, input_segments
-
 
 def input_handler(data, context):
     try:
@@ -92,13 +79,12 @@ def input_handler(data, context):
 
         raise e
 
-
 def output_handler(response, context):
     try:
         LOGGER.info("response: {}".format(response))
         response_json = response.json()
         LOGGER.info("response_json: {}".format(response_json))
-
+        
         if "predictions" in response_json:
 
             predictions = response_json["predictions"]
@@ -111,7 +97,7 @@ def output_handler(response, context):
                 LOGGER.info("outputs in loop: {}".format(prediction))
                 LOGGER.info("type(outputs) in loop: {}".format(type(prediction)))
 
-                prediction_proba = [round(el, 3) for el in max(predictions)]
+                prediction_proba = [round(el, 3) for el in prediction]
 
                 predicted_classes.append(str(np.argmax(prediction)))
                 predicted_classes.append(str(max(prediction_proba)))
@@ -126,7 +112,7 @@ def output_handler(response, context):
             return ",".join(predicted_classes), response_content_type
         else:
             LOGGER.info("{}".format(response_json))
-
+            
             raise Exception("{}".format(response_json))
     except Exception as e:
         stacktrace = traceback.format_exc()

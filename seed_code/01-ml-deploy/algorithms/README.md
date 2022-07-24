@@ -26,14 +26,16 @@ Parameters:
 * REGISTRY_NAME: Mandatory - Name of the ECR repository you want to use for pushing the image
 * IMAGE_TAG: Mandatory - Tag to apply to the ECR image
 * DOCKER_FILE: Mandatory - Dockerfile to build
-* AWS_PROFILE: Optional - AWS profile to use for pushing the image on ECR
+* PLATFORM: Optional - Build the docker image for a specific Platform
 
 ```
-./build_image.sh <ALGORITHM_NAME> <REGISTRY_NAME> <IMAGE_TAG> <DOCKER_FILE>
+./build_image.sh <ALGORITHM_NAME> <REGISTRY_NAME> <IMAGE_TAG> <DOCKER_FILE> <PLATFORM>
 ```
 
-Example:
+### Examples:
+
+#### Inference
 
 ```
-./build_image.sh processing bert-profanity-processing latest Dockerfile
+./build_image.sh inference-custom-container sm-end-to-end-inference-mlops-custom latest docker/custom-container/Dockerfile linux/amd64
 ```

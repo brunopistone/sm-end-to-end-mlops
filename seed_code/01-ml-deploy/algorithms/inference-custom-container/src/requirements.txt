@@ -1,0 +1,14 @@
+boto3
+Flask
+Flask-API
+Flask-Cors
+fsspec
+gunicorn
+h5py
+nltk
+numpy
+pandas
+params-flow==0.8.2
+scikit-learn
+scipy
+transformers

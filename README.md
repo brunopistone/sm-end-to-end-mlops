@@ -82,7 +82,7 @@ for monitoring updates in the SageMaker Model Registry and start the CI/CD pipel
    6. S3BucketName: Name for the S3 bucket where ML model artifacts, code artifacts, and data will be stored. *Mandatory*
 
 
-## Labs
+## Notebooks
 
 ### Build and Train ML models
 
@@ -132,9 +132,12 @@ through CI/CD for creating or updating Amazon SageMaker Endpoints
 * [notebooks](seed_code/01-ml-deploy/notebooks): This folder contains the lab notebooks to use for this workshop:
   * [notebooks/00-SageMaker-Endpoint](seed_code/01-ml-deploy/notebooks/00-Deploy-SageMaker-Endpoint.ipynb): This notebook shows you how to 
   deploy a trained ML model taken from the Amazon SageMaker Model Registry
-  * [notebooks/01-Model-Monitor](seed_code/01-ml-deploy/notebooks/01-Model-Monitor.ipynb): This notebook shows you how to 
+  * [notebooks/01-SageMaker-Endpoint-Custom-Container](seed_code/01-ml-deploy/notebooks/01-Deploy-SageMaker-Endpoint-Custom-Container.ipynb): 
+  This notebook shows you how to deploy a trained ML model taken from the Amazon SageMaker Model Registry by using a Custom Docker Image for 
+  a Real-Time inference (BYOC)
+  * [notebooks/02-Model-Monitor](seed_code/01-ml-deploy/notebooks/02-Model-Monitor.ipynb): This notebook shows you how to 
   create Amazon SageMaker Model Monitor jobs for monitoring model quality on the deployed endpoint
-  * [notebooks/01-Pipeline-Deployment](seed_code/01-ml-deploy/notebooks/02-Pipeline-Deployment.ipynb): Define 
+  * [notebooks/03-Pipeline-Deployment](seed_code/01-ml-deploy/notebooks/03-Pipeline-Deployment.ipynb): Define 
   the workflow steps and test the entire end to end using the script for CI/CD deployment
 
 ## CI/CD
