@@ -23,5 +23,5 @@ training:
     training_instance_type: ml.p2.xlarge
     training_hyperparameters:
         epochs: 6
-        learning_rate: 3e-5
+        learning_rate: 1.45e-4
         batch_size: 100
