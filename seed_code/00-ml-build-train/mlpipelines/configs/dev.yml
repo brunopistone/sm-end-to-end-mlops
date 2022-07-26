@@ -20,7 +20,7 @@ training:
     training_framework_version: 2.5
     training_python_version: py37
     training_instance_count: 1
-    training_instance_type: ml.p2.xlarge
+    training_instance_type: ml.g4dn.xlarge
     training_hyperparameters:
         epochs: 6
         learning_rate: 1.45e-4
