@@ -1,8 +1,7 @@
 # SageMaker End to End lab for Building, Training, and Deploying ML models
 
 In this repository, we are stepping through an end to end implementation of Machine Learning (ML) models using Amazon SageMaker,
-by deploying versioned models stored in the [Amazon SageMaker Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html) 
-for real-time inference using [Amazon SageMaker Hosting Services](https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html).
+by deploying versioned models stored in the Amazon SageMaker Model Registry for real-time inference using Amazon SageMaker Hosting Services.
 
 This is a sample code repository for demonstrating how to organize your code for build and train your model, by starting from 
 an implementation through notebooks for arriving to a code structure architecture for implementing ML pipeline using Amazon 
@@ -29,16 +28,32 @@ In this example, we are performing a Sentiment Analysis task by creating a multi
 In this repository, you will cover an end-to-end approach for building, training, deploying, and monitoring a ML model for 
 fraud detection by using Amazon SageMaker.
 
-1. Data Visualization using Amazon SageMaker Studio Notebooks
-2. Prepare data for training using Amazon SageMaker Processing, by using [FrameworkProcessor](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html) 
-for installing custom python modules
-3. Store feature using [Amazon SageMaker Feature Store](https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store-getting-started.html)
-4. Train, and version ML models using Amazon SageMaker Jobs and Amazon SageMaker Model Registry
-5. Build a custom container using the [sagemaker-training-toolkit](https://github.com/aws/sagemaker-training-toolkit) for 
-training ML models
-6. Find hyperparameters combination using Amazon SageMaker Hyperparameter Optimization Jobs
-7. Deploy Real-Time endpoints using Amazon SageMaker Hosting Services
-8. Monitor the quality of your model using Amazon SageMaker Model Monitoring
+1. Data Visualization using [Amazon SageMaker Studio Notebooks](https://docs.aws.amazon.com/sagemaker/latest/dg/notebooks.html)
+2. Prepare data for training using [Amazon SageMaker Processing](https://docs.aws.amazon.com/sagemaker/latest/dg/processing-job.html), 
+by exploring the different capabilities that Amazon SageMaker is providing us:
+   1. [Framework Processor](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html) Use the Amazon SageMaker framework containers by providing your own
+   custom python scripts and python dependencies using a requirements.txt
+   2. [Custom Scripts Container](https://docs.aws.amazon.com/sagemaker/latest/dg/processing-container-run-scripts.html) Build your own custom container that has your python dependencies
+   installed and provide your own custom python scripts
+   3. [BYOC](https://docs.aws.amazon.com/sagemaker/latest/dg/build-your-own-processing-container.html) Build your own custom container that has your own code and dependencies
+3. Store dataset features by using [Amazon SageMaker Feature Store](https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store-getting-started.html)
+4. Train, and version ML models using [Amazon SageMaker Training](https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works-training.html), 
+by exploring the different capabilities that Amazon SageMaker is providing us, and [Amazon SageMaker Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html):
+   1. [Framework Container](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers-prebuilt.html) Use the Amazon SageMaker framework containers by providing your own
+   custom python scripts and python dependencies using a requirements.txt
+   2. [Custom Scripts Container](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers-adapt-your-own.html) Adapt your own custom container that has your python dependencies installed 
+   by using the [Amazon SageMaker Training Toolkit](https://github.com/aws/sagemaker-training-toolkit) and provide your own custom python scripts
+   3. [BYOC](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo.html) by building your own custom container that has your own code and dependencies
+5. Find the right set of hyperparameters by using [Amazon SageMaker Hyperparameter Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html)
+6. Create a ML workflow, by using Processing, Training, and Versioning steps, by using [Amazon SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines.html)
+7. Deploy Real-Time endpoints using [Amazon SageMaker Hosting Services](https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works-deployment.html), 
+by exploring the different capabilities that Amazon SageMaker is providing us:
+   1. [Framework Predictor](https://sagemaker.readthedocs.io/en/stable/frameworks/index.html) Provide your own inference script and deploy an ML model, taken from the Amazon SageMaker Model Registry,
+   by using the Amazon SageMaker framework container
+   2. [BYOC](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-main.html) Build your own custom container that has your own code and dependencies, and expose the necessary endopoints
+   for Amazon SageMaker Real-Time Endpoint
+9. Compute feature attributions for model explainability by using [Amazon SageMaker Clarify](https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-configure-processing-jobs.html) 
+10. Monitor the quality of your model using [Amazon SageMaker Model Monitoring](https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality.html)
 
 ## Environment Setup
 
@@ -68,8 +83,8 @@ be triggered through pushes on the main branch or with the automation part deplo
    4. *RepositoryDeploymentName*:  Name for the repository where the deployment code will be stored. *Mandatory*
    5. *S3BucketArtifacts*: Name of the Amazon S3 Bucket that will be created in the next stack used for storing code and model artifacts. *Mandatory*
 4. [03-ml-environment](./infrastructure_templates/03-ml-environment/template.yml): This template is creating the necessary resources for the 
-ML workflow, such as Amazon S3 bucket for storing code and model artifacts, [Amazon SageMaker Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html) 
-for versioning trained ML models, and [Amazon EventBridge Rule](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html) 
+ML workflow, such as Amazon S3 bucket for storing code and model artifacts, Amazon SageMaker Model Registry for versioning 
+trained ML models, and [Amazon EventBridge Rule](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html) 
 for monitoring updates in the SageMaker Model Registry and start the CI/CD pipeline for deploying ML models in the production environments.
 *Parameters*:
    1. AccountIdTooling: AWS Account ID where CI/CD is deployed. Can be empty if you have deployed the complete stack. In this 
@@ -84,7 +99,7 @@ for monitoring updates in the SageMaker Model Registry and start the CI/CD pipel
 
 ## Notebooks
 
-### Build and Train ML models
+### Prepare Data, Build, and Train ML models
 
 The code structure defined for the [Build and Train ML models](seed_code/00-model-build-train) is the following:
 
@@ -119,7 +134,7 @@ Amazon SageMaker Pipeline used for training
   * [notebooks/09-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/09-SageMaker-Pipeline-Training.ipynb): Define 
   the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
 
-### Deploy ML models
+### Evaluate, Deploy, and Monitor ML models
 
 The code structure defined for the [Deploy ML models](seed_code/01-ml-deploy) is the following:
 
@@ -142,7 +157,7 @@ through CI/CD for creating or updating Amazon SageMaker Endpoints
   * [notebooks/04-Pipeline-Deployment](seed_code/01-ml-deploy/notebooks/04-Pipeline-Deployment.ipynb): Define 
   the workflow steps and test the entire end to end using the script for CI/CD deployment
 
-## CI/CD
+## MLOps
 
 The [CloudFormation templates](./infrastructure_templates) provided are creating a fully worked ML environment with CI/CD pipelines for automating the training 
 of ML models and the deployment of real-time endpoints.
@@ -174,12 +189,12 @@ training:
     training_artifact_path: artifact/training
     training_artifact_name: sourcedir.tar.gz
     training_output_files_path: models
-    training_framework_version: 2.4
+    training_framework_version: 2.5
     training_python_version: py37
     training_instance_count: 1
-    training_instance_type: ml.p2.xlarge
+    training_instance_type: ml.g4dn.xlarge
     training_hyperparameters:
-        epochs: 5
+        epochs: 6
         learning_rate: 1.45e-4
         batch_size: 100
 ```
@@ -200,7 +215,7 @@ deployment:
     inference_instance_type: ml.m5.xlarge
     model_package_group: ml-end-to-end-group
     monitoring_output_path: data/monitoring/captured
-    training_framework_version: 2.4
+    training_framework_version: 2.5
 ```
 
 The pushes in the two AWS CodeCommit repositories will automate the execution of the AWS CodePipeline for executing the training 

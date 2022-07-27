@@ -32,10 +32,6 @@ Conditions:
   AccountIdToolingEmpty: !Equals
     - !Ref AccountIdTooling
     - ''
-  DeployEventBridgeAutomation: !Not
-    - !Equals
-      - !Ref CodePipelineDeploymentArn
-      - ""
   CodePipelineDeploymentArnEmpty: !Equals
     - !Ref CodePipelineDeploymentArn
     - ''
