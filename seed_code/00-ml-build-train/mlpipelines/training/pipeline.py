@@ -75,15 +75,11 @@ def get_pipeline(
     training_hyperparameters={},
     role=None,
     pipeline_name="TrainingPipeline"):
-    """Gets a SageMaker ML Pipeline instance working with on abalone data.
+    """
+        Gets a SageMaker ML Pipeline instance.
 
-    Args:
-        region: AWS region to create and run the pipeline.
-        role: IAM role to create and run steps and pipeline.
-        default_bucket: the bucket to use for storing the artifacts
-
-    Returns:
-        an instance of a pipeline
+        Returns:
+            an instance of a pipeline
     """
     sagemaker_session = get_session(region, bucket_name)
 
