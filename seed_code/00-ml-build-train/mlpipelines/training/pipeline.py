@@ -45,6 +45,7 @@ def get_session(
             sagemaker_runtime_client=runtime_client,
             default_bucket=default_bucket
         )
+
     except Exception as e:
         stacktrace = traceback.format_exc()
         LOGGER.error("{}".format(stacktrace))
@@ -81,6 +82,7 @@ def get_pipeline(
         Returns:
             an instance of a pipeline
     """
+
     sagemaker_session = get_session(region, bucket_name)
 
     if role is None:

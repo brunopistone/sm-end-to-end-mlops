@@ -1,10 +1,10 @@
 training:
     pipeline_name: MLOpsTrainPipeline
     region: eu-west-1
-    role:
-    kms_account_id:
+    role: arn:aws:iam::691148928602:role/mlops-sagemaker-execution-role
+    kms_account_id: 691148928602
     kms_alias: ml-kms
-    bucket_name:
+    bucket_name: isengard-bpistone-ml-end-to-end-dev
     inference_instance_type: ml.m5.xlarge
     model_package_group_name: ml-end-to-end-group
     processing_artifact_path: artifact/processing

@@ -1,0 +1,5 @@
+boto3
+pandas
+PyYAML
+sagemaker
+scikit-learn

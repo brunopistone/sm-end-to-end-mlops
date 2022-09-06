@@ -1,12 +1,12 @@
 deployment:
     pipeline_name: MLOpsDeploymentPipeline
     region: eu-west-1
-    kms_account_id:
+    kms_account_id: 691148928602
     kms_alias: ml-kms
     env: dev
-    role:
-    bucket_artifacts:
-    bucket_inference:
+    role: arn:aws:iam::691148928602:role/mlops-sagemaker-execution-role
+    bucket_artifacts: isengard-bpistone-ml-end-to-end-dev
+    bucket_inference: isengard-bpistone-ml-end-to-end-dev
     inference_artifact_path: artifact/inference
     inference_artifact_name: sourcedir.tar.gz
     inference_instance_count: 1

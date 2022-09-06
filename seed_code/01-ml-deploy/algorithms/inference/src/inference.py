@@ -29,12 +29,10 @@ def __detect_language(body):
 
         raise e
 
-
 def __encode(tokenizer, shape, body):
     input_ids, input_masks, input_segments = utils.tokenize_sequence(tokenizer, shape, body)
 
     return input_ids, input_masks, input_segments
-
 
 def input_handler(data, context):
     try:
@@ -81,13 +79,12 @@ def input_handler(data, context):
 
         raise e
 
-
 def output_handler(response, context):
     try:
         LOGGER.info("response: {}".format(response))
         response_json = response.json()
         LOGGER.info("response_json: {}".format(response_json))
-
+        
         if "predictions" in response_json:
 
             predictions = response_json["predictions"]
@@ -125,7 +122,7 @@ def output_handler(response, context):
                 return final_response, response_content_type
         else:
             LOGGER.info("{}".format(response_json))
-
+            
             raise Exception("{}".format(response_json))
     except Exception as e:
         stacktrace = traceback.format_exc()

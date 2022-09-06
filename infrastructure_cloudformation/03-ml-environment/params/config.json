@@ -1,0 +1,10 @@
+{
+  "Parameters": {
+    "AccountIdTooling": "",
+    "CodePipelineDeploymentArn": "",
+    "KMSAlias": "ml-kms",
+    "ModelPackageGroupDescription": "Model package group used for the project",
+    "ModelPackageGroupName": "ml-end-to-end-group",
+    "S3BucketName": ""
+  }
+}
