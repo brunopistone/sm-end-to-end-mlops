@@ -1,31 +1,39 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: CI/CD MLOps
 Parameters:
-  AccountIdDev:
+  ModelPackageGroupName:
     Type: String
-    Description: AWS Account Id for dev environment
+    Description: Model Package Group Name
     Default: ''
+
   PipelineSuffix:
     Type: String
     Description: Suffix for the pipeline names
     Default: ''
+
   RepositoryTrainingName:
     Type: String
     Description: CodeCommit repository name for training
-    Default: ''
+
   RepositoryDeploymentName:
     Type: String
     Description: CodeCommit repository name for deployment
     Default: ''
+
   S3BucketArtifacts:
     Type: String
     Description: S3 Bucket for ML artifacts
+    Default: ''
+
 Conditions:
-  AccountIdDevEmpty: !Equals
-    - !Ref AccountIdDev
+  ModelPackageGroupNameEmpty: !Equals
+    - !Ref ModelPackageGroupName
     - ''
   PipelineSuffixEmpty: !Equals
     - !Ref PipelineSuffix
+    - ''
+  S3BucketArtifactsEmpty: !Equals
+    - !Ref S3BucketArtifacts
     - ''
 
 Resources:
@@ -93,6 +101,73 @@ Resources:
       ManagedPolicyArns:
         - !Ref CodePolicy
 
+  ### Policy for CI/CD Automation ###
+
+  AutomationPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "cloudformation:*"
+              - "cloudwatch:*"
+              - "codebuild:*"
+              - "codecommit:*"
+              - "codedeploy:*"
+              - "ec2:CreateNetworkInterface"
+              - "ec2:CreateNetworkInterfacePermission"
+              - "ec2:DeleteNetworkInterface"
+              - "ec2:DeleteNetworkInterfacePermission"
+              - "ec2:DescribeDhcpOptions"
+              - "ec2:DescribeNetworkInterfaces"
+              - "ec2:DescribeRouteTables"
+              - "ec2:DescribeSecurityGroups"
+              - "ec2:DescribeSubnets"
+              - "ec2:DescribeVpcEndpoints"
+              - "ec2:DescribeVpcs"
+              - "iam:PassRole"
+              - "kms:CreateGrant"
+              - "kms:Decrypt"
+              - "kms:DescribeKey"
+              - "kms:Encrypt"
+              - "kms:ReEncrypt"
+              - "kms:GenerateDataKey"
+              - "lambda:*"
+              - "logs:*"
+              - "s3:*"
+              - "sagemaker:*"
+              - "ssm:*"
+              - "states:*"
+              - "sts:AssumeRole"
+            Resource:
+              - "*"
+
+  ### Role for CI/CD Automation ###
+
+  AutomationRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: ci-cd-automation-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+                - codebuild.amazonaws.com
+                - codepipeline.amazonaws.com
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+      Path: /
+      ManagedPolicyArns:
+        - !Ref AutomationPolicy
+
   BuildProjecTrainingtDev:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -105,14 +180,14 @@ Resources:
         Type: LINUX_CONTAINER
         EnvironmentVariables:
           - Name: CROSS_ACCOUNT_ROLE
-            Value: !If
-              - AccountIdDevEmpty
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/ci-cd-automation-role'
-              - !Sub 'arn:aws:iam::${AccountIdDev}:role/ci-cd-automation-role'
+            Value: !GetAtt AutomationRole.Arn
           - Name: ENV
             Value: dev
           - Name: S3_BUCKET_NAME
-            Value: !Ref S3BucketArtifacts
+            Value: !If
+              - S3BucketArtifactsEmpty
+              - !Sub '{{resolve:ssm:/s3/bucket/ml}}'
+              - !Ref S3BucketArtifacts
       ServiceRole: !Ref CodeRole
       TimeoutInMinutes: 480
       Source:
@@ -131,14 +206,14 @@ Resources:
         Type: LINUX_CONTAINER
         EnvironmentVariables:
           - Name: CROSS_ACCOUNT_ROLE
-            Value: !If
-              - AccountIdDevEmpty
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/ci-cd-automation-role'
-              - !Sub 'arn:aws:iam::${AccountIdDev}:role/ci-cd-automation-role'
+            Value: !GetAtt AutomationRole.Arn
           - Name: ENV
             Value: dev
           - Name: S3_BUCKET_NAME
-            Value: !Ref S3BucketArtifacts
+            Value: !If
+              - S3BucketArtifactsEmpty
+              - !Sub '{{resolve:ssm:/s3/bucket/ml}}'
+              - !Ref S3BucketArtifacts
       ServiceRole: !Ref CodeRole
       TimeoutInMinutes: 480
       Source:
@@ -243,10 +318,52 @@ Resources:
               Region: !Sub '${AWS::Region}'
               RunOrder: 1
 
-  CodePipelineDeploymentArn:
-    Type: AWS::SSM::Parameter
+  ### EventBridge Rule
+
+  EventBridgeRole:
+    Type: AWS::IAM::Role
     Properties:
-      Name: /codepipeline/deployment
-      Tier: Standard
-      Type: String
-      Value: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipelineDeploymentDev}"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+
+  EventBridgeDefaultIAMPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: "codepipeline:StartPipelineExecution"
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipelineDeploymentDev}"
+      PolicyName: EventBridgeDefaultIAMPolicy
+      Roles:
+        - !Ref EventBridgeRole
+
+  EventBridgeRuleDeploy:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Check Model Package changes
+      EventPattern:
+        detail:
+          ModelPackageGroupName: !If
+            - ModelPackageGroupNameEmpty
+            - - '{{resolve:ssm:/sagemaker/model/package/group}}'
+            - - !Ref ModelPackageGroupName
+          ModelApprovalStatus:
+            - Approved
+        detail-type:
+          - SageMaker Model Package State Change
+        source:
+          - aws.sagemaker
+      Name: deployment-pipeline-rule
+      State: ENABLED
+      Targets:
+        - Arn: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipelineDeploymentDev}"
+          Id: Target0
+          RoleArn: !GetAtt
+            - EventBridgeRole
+            - Arn

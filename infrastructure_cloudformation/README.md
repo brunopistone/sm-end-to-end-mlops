@@ -7,8 +7,8 @@ Profile and the Simulated edge environment
 
 1. 00-networking
 2. 01-sagemaker-studio-environment
-3. 02-ci-cd
-4. 03-ml-environment
+3. 02-ml-environment
+4. 03-ci-cd
 
 ### Script buildspec.sh
 
@@ -25,23 +25,23 @@ Parameters:
 #### Networking
 
 ```
-./buildspec.sh 00-networking isengard-bpistone-ml-end-to-end-dev
+./buildspec.sh 00-networking test-bucket
 ```
 
 #### SageMaker Studio Environment
 
 ```
-./buildspec.sh 01-sagemaker-studio-environment isengard-bpistone-ml-end-to-end-dev
-```
-
-#### CI/CD
-
-```
-./buildspec.sh 02-ci-cd isengard-bpistone-ml-end-to-end-dev
+./buildspec.sh 01-sagemaker-studio-environment test-bucket
 ```
 
 #### ML Environment
 
 ```
-./buildspec.sh 03-ml-environment isengard-bpistone-ml-end-to-end-dev
+./buildspec.sh 02-ml-environment test-bucket
+```
+
+#### CI/CD
+
+```
+./buildspec.sh 03-ci-cd test-bucket
 ```

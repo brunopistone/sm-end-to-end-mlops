@@ -1,0 +1,7 @@
+{
+  "Parameters": {
+    "KMSAlias": "ml-kms",
+    "ModelPackageGroupName": "ml-end-to-end-group",
+    "S3BucketName": ""
+  }
+}

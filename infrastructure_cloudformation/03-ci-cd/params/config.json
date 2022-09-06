@@ -1,6 +1,6 @@
 {
   "Parameters": {
-    "AccountIdDev": "",
+    "ModelPackageGroupName": "",
     "PipelineSuffix": "ml-end-to-end",
     "RepositoryTrainingName": "ml-build-train",
     "RepositoryDeploymentName": "ml-deploy",

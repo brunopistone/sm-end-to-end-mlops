@@ -435,10 +435,3 @@ Resources:
         - Arn
       Runtime: python3.8
       Timeout: 900
-  SageMakerExecutionRoleSSM:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: /sagemaker/role
-      Tier: Standard
-      Type: String
-      Value: !Ref SageMakerExecutionRole

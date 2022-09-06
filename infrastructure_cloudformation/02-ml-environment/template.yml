@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ML Environment
+Parameters:
+  KMSAlias:
+    Type: String
+    Description: KMS Alias to use for the encryption key
+    Default: ml-kms
+
+  ModelPackageGroupName:
+    Type: String
+    Description: SageMaker model package group name
+
+  S3BucketName:
+    Type: String
+    Description: Bucket name used for SM Studio
+
+Resources:
+  ### KMS Section ###
+
+  KmsS3Key:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      Enabled: true
+      KeyPolicy:
+        Id: !Ref AWS::StackName
+        Statement:
+          - Sid: Enable administration of the key
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+
+  KmsS3KeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${KMSAlias}
+      TargetKeyId: !Ref KmsS3Key
+
+  ### Bucket Section ###
+
+  S3BucketMLLogging:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${S3BucketName}-logs"
+      AccessControl: "LogDeliveryWrite"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: false
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  S3BucketML:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${S3BucketName}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: false
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:${KmsS3KeyAlias}"
+              SSEAlgorithm: "aws:kms"
+      LoggingConfiguration:
+        DestinationBucketName: !Ref S3BucketMLLogging
+        LogFilePrefix: s3/
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  ### Bucket Policy Section ###
+
+  S3BucketPolicyML:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3BucketML
+      PolicyDocument:
+        Statement:
+          - Action: "s3:*"
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:"
+                  - !Ref "AWS::Partition"
+                  - ":iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+            Resource:
+              - !GetAtt
+                - S3BucketML
+                - Arn
+              - !Join
+                - ""
+                - - !GetAtt
+                    - S3BucketML
+                    - Arn
+                  - /*
+        Version: 2012-10-17
+
+  ### SageMaker Model Registry
+
+  SageMakerModelPackageGroup:
+    Type: AWS::SageMaker::ModelPackageGroup
+    Properties:
+      ModelPackageGroupName: !Ref ModelPackageGroupName
+      ModelPackageGroupPolicy:
+        Statement:
+          - Action:
+              - "sagemaker:*"
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:"
+                  - !Ref "AWS::Partition"
+                  - ":iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+            Resource:
+              - !Join
+                - ""
+                - - "arn:aws:sagemaker:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":model-package-group/"
+                  - !Ref ModelPackageGroupName
+              - !Join
+                - ""
+                - - "arn:aws:sagemaker:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":model-package/"
+                  - !Ref ModelPackageGroupName
+                  - /*
+            Sid: "0"
+        Version: 2012-10-17
+
+  ### SSM Parameters
+
+  ModelPackageGroupNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /sagemaker/model/package/group
+      Tier: Standard
+      Type: String
+      Value: !Ref ModelPackageGroupName
+
+  S3BucketNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /s3/bucket/ml
+      Tier: Standard
+      Type: String
+      Value: !Ref S3BucketName
