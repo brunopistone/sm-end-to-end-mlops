@@ -60,7 +60,7 @@ by exploring the different capabilities that Amazon SageMaker is providing us:
 
 ### Environment Setup
 
-Setup the ML environment by deploying the [CloudFormation](./infrastructure_templates) templates described as below:
+Setup the ML environment by deploying the [CloudFormation](./infrastructure_cloudformation) templates described as below:
 
 1. [00-networking](./infrastructure_cloudformation/00-networking/template.yml): This template is creating a networking resources,  
 such as VPC, Private Subnets, Security Groups, for a secure environment for Amazon SageMaker Studio. The necessary variables 
@@ -70,11 +70,11 @@ the SageMaker Studio environment, with the necessary execution role used during 
 SageMaker Jobs. *Parameters*:
    1. *SageMakerDomainName*: Name to assign to the Amazon SageMaker Studio Domain. *Mandatory* 
    2. *SecurityGroupId*: Provide a Security Group for studio if you want to use your own networking setup, otherwise the parameter
-   is read by using AWS SSM after the deployment of the template [00-networking](./infrastructure_templates/00-networking/template.yml). *Optional*
+   is read by using AWS SSM after the deployment of the template [00-networking](./infrastructure_cloudformation/00-networking/template.yml). *Optional*
    3. *SubnetId*: Provide a Subnet (Public or Private) for studio if you want to use your own networking setup, otherwise the parameter
-   is read by using AWS SSM after the deployment of the template [00-networking](./infrastructure_templates/00-networking/template). *Optional*
+   is read by using AWS SSM after the deployment of the template [00-networking](./infrastructure_cloudformation/00-networking/template). *Optional*
    4. *VpcId*: Provide a Vpc ID for studio if you want to use your own networking setup, otherwise the parameter is read by 
-   using AWS SSM after the deployment of the template [00-networking](./infrastructure_templates/00-networking/template). *Optional*
+   using AWS SSM after the deployment of the template [00-networking](./infrastructure_cloudformation/00-networking/template). *Optional*
 3. [02-ml-environment](./infrastructure_cloudformation/02-ml-environment/template.yml): This template is creating the necessary resources for the 
 ML environment, such as Amazon S3 bucket for storing code and model artifacts, and Amazon SageMaker Model Registry for versioning 
 trained ML models.
@@ -89,7 +89,7 @@ trained ML models.
 
 Explore the directory [00-ml-build-train](./seed_code/00-ml-build-train)
 
-The code structure defined for the [Build and Train ML models](seed_code/00-model-build-train) is the following:
+The code structure defined for the [Build and Train ML models](seed_code/00-ml-build-train) is the following:
 
 * [algorithms](seed_code/00-ml-build-train/algorithms): The code used by the ML pipelines for processing and training ML models is stored in this folder
   * [algorithms/processing](seed_code/00-ml-build-train/algorithms/processing): This folder contains the python code for performing processing of data
@@ -100,7 +100,7 @@ The code structure defined for the [Build and Train ML models](seed_code/00-mode
 [Amazon SageMaker secure MLOps](https://github.com/aws-samples/amazon-sagemaker-secure-mlops) and it contains the definition for the 
 Amazon SageMaker Pipeline used for training
   * [mlpipelines](seed_code/00-ml-build-train/mlpipelines/training): This folder contains the python code for the ML pipelines used for training
-* [notebooks](seed_code/00-model-build-train/notebooks): This folder contains the lab notebooks to use for this workshop:
+* [notebooks](seed_code/00-ml-build-train/notebooks): This folder contains the lab notebooks to use for this workshop:
   * [notebooks/00-Data-Visualization](seed_code/00-ml-build-train/notebooks/00-Data-Visualization.ipynb): Explore the input data and test the processing scripts 
   in the notebook
   * [notebooks/01-Prepare-Data-ML-Framework-Container](seed_code/00-ml-build-train/notebooks/01-Prepare-Data-ML-Framework-Container.ipynb): Define a Python Script and create jobs for data processing using 
@@ -155,7 +155,7 @@ through CI/CD for creating or updating Amazon SageMaker Endpoints
 
 ### Environment Setup
 
-Setup the ML environment by deploying the [CloudFormation](./infrastructure_templates) templates described as below:
+Setup the ML environment by deploying the [CloudFormation](./infrastructure_cloudformation) templates described as below:
 
 1. [03-ci-cd](./infrastructure_cloudformation/03-ci-cd/template.yml): This template is creating the CI/CD pipelines using 
 [AWS CodeBuild](https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html) and [AWS CodePipeline](https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html).
@@ -169,7 +169,7 @@ for monitoring updates in the SageMaker Model Registry and start the CI/CD pipel
    5. *S3BucketArtifacts*: Name of the Amazon S3 Bucket that will be created in the next stack used for storing code and model artifacts. *Mandatory*
 
 
-The [CloudFormation templates](./infrastructure_templates) provided are creating a fully worked ML environment with CI/CD pipelines for automating the training 
+The [CloudFormation templates](./infrastructure_cloudformation) provided are creating a fully worked ML environment with CI/CD pipelines for automating the training 
 of ML models and the deployment of real-time endpoints.
 
 By starting from the AWS CodeCommit repositories created, you can customize the execution of CI/CD pipelines by editing the configurations 
