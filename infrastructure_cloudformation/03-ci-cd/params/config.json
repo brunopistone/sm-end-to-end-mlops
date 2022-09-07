@@ -1,9 +1,3 @@
 {
-  "Parameters": {
-    "ModelPackageGroupName": "",
-    "PipelineSuffix": "ml-end-to-end",
-    "RepositoryTrainingName": "ml-build-train",
-    "RepositoryDeploymentName": "ml-deploy",
-    "S3BucketArtifacts": ""
-  }
+  "Parameters": {}
 }

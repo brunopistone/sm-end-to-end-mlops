@@ -9,16 +9,17 @@ Parameters:
   PipelineSuffix:
     Type: String
     Description: Suffix for the pipeline names
-    Default: ''
+    Default: ml-end-to-end
 
   RepositoryTrainingName:
     Type: String
     Description: CodeCommit repository name for training
+    Default: ml-build-train
 
   RepositoryDeploymentName:
     Type: String
     Description: CodeCommit repository name for deployment
-    Default: ''
+    Default: ml-deploy
 
   S3BucketArtifacts:
     Type: String
