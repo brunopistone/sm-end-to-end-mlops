@@ -4,8 +4,8 @@ In this repository, we are stepping through an end to end implementation of Mach
 by deploying versioned models stored in the Amazon SageMaker Model Registry for real-time inference using Amazon SageMaker Hosting Services.
 
 This is a sample code repository for demonstrating how to organize your code for build and train your model, by starting from 
-an implementation through notebooks for arriving to a code structure architecture for implementing ML pipeline using Amazon 
-SageMaker Pipeline, and how to setup a repository for deploying ML models using CI/CD.
+an implementation through notebooks (Prototyping phase) for arriving to a code structure architecture for implementing ML pipelines 
+using Amazon SageMaker Pipeline, and how to setup a repository for deploying ML models using CI/CD.
 
 This repository is enriched by CloudFormation templates for setting up the ML environment, by creating the SageMaker Studio 
 environment, Networking, and CI/CD for deploying ML models.
@@ -57,6 +57,10 @@ by exploring the different capabilities that Amazon SageMaker is providing us:
 *Model Quality jobs manually* for testing batch executions
 
 ## 1. Machine Learning End to End with Amazon SageMaker
+
+As a first step, as a ML Expert I would like to experiment through notebooks the different capabilities offered by Amazon SageMaker.
+
+For the purpose of this section, you will see how to manage Notebooks and call APIs for interacting with the different Amazon SageMaker services.
 
 ### Environment Setup
 
@@ -122,7 +126,6 @@ Amazon SageMaker Pipeline used for training
   * [notebooks/09-SageMaker-Pipeline-Training](seed_code/00-ml-build-train/notebooks/09-SageMaker-Pipeline-Training.ipynb): Define 
   the workflow steps and test the entire end to end using Amazon SageMaker Pipeline
 
-
 #### 2. Evaluate, Deploy ML models with Real-Time endpoint, and Monitor ML model quality
 
 Explore the directory [01-ml-deploy](./seed_code/01-ml-deploy)
@@ -152,6 +155,32 @@ through CI/CD for creating or updating Amazon SageMaker Endpoints
   the workflow steps and test the entire end to end using the script for CI/CD deployment
 
 ## 2. Automate model deployments with AWS MLOps
+
+Once the prototyping phase is finished, as a ML Engineer I would like to automate all the steps executed through notebooks in 
+the previous section.
+
+For this reason, it's really important to define proper Git Repositories where my code will be versioned, define a proper repository and code structure,
+and automate the ML and CI/CD steps through the usage of pipelines.
+
+For the purpose of this example, we have defined the following repository structure:
+
+```
+* repo
+  * algorithms: Where ML Experts have to store the code for data processing, training, and inference
+  * mlpipelines: Where ML Experts and MLOps Engineers have to define the ML steps in a proper workflow
+  * notebooks: Where ML Experts have to store experimentation notebooks
+  * buildspec.yml: Where DevOps Engineers have to define the CI/CD steps for building code packages, execute ML Pipelines, and deploy packages into instances
+
+```
+
+![AWS CodeCommit Repo - ml-build-train](./docs/code-repo-build-train.png "AWS CodeCommit Repo - ml-build-train")
+
+For this Lab section, we will define two different code repositories for keeping separate the different ML phases:
+
+1. ml-build-train: repository used for the ML phases that led to the creation of a ML model
+2. ml-deploy: repository used for the ML phases that led to the deployment of a ML model
+
+![AWS CodeCommit Repositories](./docs/code-repos.png "AWS CodeCommit Repositories")
 
 ### Environment Setup
 
